@@ -16,7 +16,9 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   if (!visible || !order) return null
 
   const shippedTotal = order.shipments.reduce((sum, s) => sum + s.出货数量, 0)
+  const labelQty = order.贴标 || 0
   const remaining = order.数量 - shippedTotal
+  const shippable = Math.max(0, labelQty - shippedTotal)
 
   const resetForm = () => {
     setForm({ 出货日期: '', 出货单号: '', 出货数量: 0 })
@@ -34,6 +36,10 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
       : 0
     if (shippedTotal + form.出货数量 - editQty > order.数量) {
       alert('出货数量不能超过来料总数')
+      return
+    }
+    if (shippedTotal + form.出货数量 - editQty > labelQty) {
+      alert(`出货数量不能超过贴标数量 (${labelQty})`)
       return
     }
 
@@ -67,7 +73,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>&#x1F69A; 出货管理 — {order.物料名称 || ''}</h2>
         <p style={{ marginBottom: 8, color: '#5f6368', fontSize: '0.8rem' }}>
-          &#x1F4E6; 来料数量：<strong>{order.数量}</strong> | &#x2705; 已出货：<strong>{shippedTotal}</strong> | 剩余：<strong>{remaining}</strong>
+          &#x1F4E6; 来料：<strong>{order.数量}</strong> | &#x1F3F7; 已贴标：<strong>{labelQty}</strong> | &#x2705; 已出货：<strong>{shippedTotal}</strong> | 剩余可出：<strong>{shippable}</strong>
         </p>
 
         <div style={{ background: '#f6ffed', padding: 10, borderRadius: 5, marginBottom: 8, border: '1px solid #d4e8c0' }}>
