@@ -200,14 +200,15 @@ const App: React.FC = () => {
   }, [])
 
   const handleBatchNameConfirm = useCallback(
-    async (name: string) => {
+    async (name: string, date: string) => {
       try {
-        const count = await importOrdersFromExcel(pendingImportOrders, name)
+        const items = pendingImportOrders.map(item => ({ ...item, 来料日期: date }))
+        const count = await importOrdersFromExcel(items, name)
         setShowBatchNameDialog(false)
         setPendingImportOrders([])
         setBatchId(name)
         refreshBatches()
-        alert(`成功导入 ${count} 条记录到清单【${name}】`)
+        alert(`成功导入 ${count} 条记录到清单【${name}】，来料日期：${date}`)
       } catch (err: any) {
         alert('导入失败: ' + (err.message || '未知错误'))
         console.error(err)

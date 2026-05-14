@@ -3,15 +3,19 @@ import React, { useState, useEffect } from 'react'
 interface BatchNameDialogProps {
   visible: boolean
   defaultName: string
-  onConfirm: (name: string) => void
+  onConfirm: (name: string, date: string) => void
   onCancel: () => void
 }
 
 const BatchNameDialog: React.FC<BatchNameDialogProps> = ({ visible, defaultName, onConfirm, onCancel }) => {
   const [name, setName] = useState('')
+  const [date, setDate] = useState('')
 
   useEffect(() => {
-    if (visible) setName(defaultName)
+    if (visible) {
+      setName(defaultName)
+      setDate(new Date().toISOString().slice(0, 10))
+    }
   }, [visible, defaultName])
 
   if (!visible) return null
@@ -22,7 +26,11 @@ const BatchNameDialog: React.FC<BatchNameDialogProps> = ({ visible, defaultName,
       alert('清单名称不能为空')
       return
     }
-    onConfirm(trimmed)
+    if (!date) {
+      alert('请选择来料日期')
+      return
+    }
+    onConfirm(trimmed, date)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -42,6 +50,14 @@ const BatchNameDialog: React.FC<BatchNameDialogProps> = ({ visible, defaultName,
             onKeyDown={handleKeyDown}
             placeholder="请输入清单名称"
             autoFocus
+          />
+        </div>
+        <div className="form-group">
+          <label>来料日期</label>
+          <input
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
           />
         </div>
         <div className="modal-footer">
