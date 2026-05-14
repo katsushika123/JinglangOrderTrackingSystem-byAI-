@@ -48,6 +48,7 @@ const App: React.FC = () => {
     removeOrders,
     toggleOrderCheck,
     importOrdersFromExcel,
+    refresh,
   } = useOrders()
 
   const { batches, refreshBatches } = useBatches()
@@ -148,8 +149,9 @@ const App: React.FC = () => {
   }, [])
 
   const handleShipmentDataChanged = useCallback(async () => {
+    await refresh()
     await refreshBatches()
-  }, [refreshBatches])
+  }, [refresh, refreshBatches])
 
   const handleToggleCheck = useCallback(
     async (id: number, field: string) => {
