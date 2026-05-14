@@ -216,9 +216,23 @@ export function getOrders(batchId: string | null, filters: Record<string, string
 
   const rows = dbAll(sql, params)
 
+  const orderIds = rows.map(r => r.id as number)
+  let shipmentMap = new Map<number, ShipmentRow[]>()
+  if (orderIds.length > 0) {
+    const placeholders = orderIds.map(() => '?').join(',')
+    const allShipments = dbAll(
+      `SELECT * FROM shipments WHERE order_id IN (${placeholders})`,
+      orderIds
+    ) as unknown as ShipmentRow[]
+    for (const s of allShipments) {
+      if (!shipmentMap.has(s.order_id)) shipmentMap.set(s.order_id, [])
+      shipmentMap.get(s.order_id)!.push(s)
+    }
+  }
+
   const result: OrderRow[] = []
   for (const row of rows) {
-    const shipments = dbAll(`SELECT * FROM shipments WHERE order_id = ?`, [row.id]) as unknown as ShipmentRow[]
+    const shipments = shipmentMap.get(row.id as number) || []
     result.push({
       id: row.id as number,
       batch_id: row.batch_id as number | null,
@@ -436,9 +450,9 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
   return orders.length
 }
 
-export function exportOrdersToExcel(batchId: string | null): { filePath: string } | null {
+export function exportOrdersToExcel(batchId: string | null, filePath: string): void {
   const orders = getOrders(batchId, {})
-  if (orders.length === 0) return null
+  if (orders.length === 0) throw new Error('没有数据可导出')
 
   const headers = [
     '项目号', '钣金单据编码', '物料长代码', '物料名称', '数量',
@@ -467,13 +481,10 @@ export function exportOrdersToExcel(batchId: string | null): { filePath: string 
   const wb = XLSX.utils.book_new()
   XLSX.utils.book_append_sheet(wb, ws, '订单数据')
 
-  const fileName = batchId ? `${batchId}_导出.xlsx` : `全部订单_导出.xlsx`
-  const filePath = join(app.getPath('desktop'), fileName)
-
   const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })
+  const dir = dirname(filePath)
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
   fs.writeFileSync(filePath, buffer)
-
-  return { filePath }
 }
 
 export function parseWeightAndUnit(raw: unknown): { weightValue: number; weightUnit: string } {

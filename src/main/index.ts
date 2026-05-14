@@ -114,8 +114,9 @@ function registerIpcHandlers(): void {
     return importOrdersToBatch(orders, batchName)
   })
 
-  ipcMain.handle('db:exportOrders', async (_event, batchId?: string) => {
-    return exportOrdersToExcel(batchId || null)
+  ipcMain.handle('db:exportOrders', async (_event, batchId?: string, filePath?: string) => {
+    if (!filePath) throw new Error('未指定保存路径')
+    exportOrdersToExcel(batchId || null, filePath)
   })
 
   // Stats
@@ -125,7 +126,8 @@ function registerIpcHandlers(): void {
 
   // File dialogs
   ipcMain.handle('dialog:openExcel', async () => {
-    const result = await dialog.showOpenDialog(mainWindow!, {
+    if (!mainWindow) return null
+    const result = await dialog.showOpenDialog(mainWindow, {
       title: '导入 Excel 清单',
       filters: [{ name: 'Excel 文件', extensions: ['xlsx', 'xls'] }],
       properties: ['openFile']
@@ -135,7 +137,8 @@ function registerIpcHandlers(): void {
   })
 
   ipcMain.handle('dialog:saveExcel', async (_event, defaultName: string) => {
-    const result = await dialog.showSaveDialog(mainWindow!, {
+    if (!mainWindow) return null
+    const result = await dialog.showSaveDialog(mainWindow, {
       title: '导出 Excel',
       defaultPath: defaultName,
       filters: [{ name: 'Excel 文件', extensions: ['xlsx'] }]

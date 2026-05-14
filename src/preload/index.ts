@@ -12,7 +12,7 @@ export interface ElectronAPI {
   updateShipment: (id: number, data: Partial<ShipmentRow>) => Promise<void>
   deleteShipment: (id: number) => Promise<void>
   importOrders: (orders: Partial<OrderRow>[], batchName: string) => Promise<number>
-  exportOrders: (batchId?: string | null) => Promise<{ filePath: string } | null>
+  exportOrders: (batchId?: string | null, filePath?: string) => Promise<void>
   getStats: (batchId?: string | null) => Promise<StatsRow>
   openExcelDialog: () => Promise<string | null>
   saveExcelDialog: (defaultName: string) => Promise<string | null>
@@ -42,7 +42,7 @@ export interface OrderRow {
   送货地址: string
   来料日期: string
   打标: boolean
-  贴标: boolean
+  贴标: number
   shipments_total_qty: number
   shipments: ShipmentRow[]
   created_at: string
@@ -74,7 +74,7 @@ const api: ElectronAPI = {
   updateShipment: (id, data) => ipcRenderer.invoke('db:updateShipment', id, data),
   deleteShipment: (id) => ipcRenderer.invoke('db:deleteShipment', id),
   importOrders: (orders, batchName) => ipcRenderer.invoke('db:importOrders', orders, batchName),
-  exportOrders: (batchId) => ipcRenderer.invoke('db:exportOrders', batchId),
+  exportOrders: (batchId, filePath) => ipcRenderer.invoke('db:exportOrders', batchId, filePath),
   getStats: (batchId) => ipcRenderer.invoke('db:getStats', batchId),
   openExcelDialog: () => ipcRenderer.invoke('dialog:openExcel'),
   saveExcelDialog: (defaultName) => ipcRenderer.invoke('dialog:saveExcel', defaultName),

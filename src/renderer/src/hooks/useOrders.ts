@@ -20,7 +20,6 @@ export interface UseOrdersReturn {
   toggleOrderCheck: (id: number, field: string) => Promise<void>
   setLabelQty: (id: number, qty: number) => Promise<void>
   importOrdersFromExcel: (orders: Partial<OrderRow>[], batchName: string) => Promise<number>
-  exportOrdersToExcel: () => Promise<void>
 }
 
 export function useOrders(): UseOrdersReturn {
@@ -96,15 +95,6 @@ export function useOrders(): UseOrdersReturn {
     return count
   }, [fetchData])
 
-  const exportOrdersToExcel = useCallback(async () => {
-    const result = await ipc.exportOrders(batchId)
-    if (result) {
-      alert(`导出成功！文件保存在：\n${result.filePath}`)
-    } else {
-      alert('没有数据可导出')
-    }
-  }, [batchId])
-
   return {
     orders,
     stats,
@@ -123,6 +113,5 @@ export function useOrders(): UseOrdersReturn {
     toggleOrderCheck,
     setLabelQty,
     importOrdersFromExcel,
-    exportOrdersToExcel,
   }
 }

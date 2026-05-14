@@ -46,8 +46,8 @@ export async function importOrders(orders: Partial<OrderRow>[], batchName: strin
   return api.importOrders(orders, batchName)
 }
 
-export async function exportOrders(batchId?: string | null): Promise<{ filePath: string } | null> {
-  return api.exportOrders(batchId ?? null)
+export async function exportOrders(batchId?: string | null, filePath?: string): Promise<void> {
+  return api.exportOrders(batchId ?? null, filePath)
 }
 
 export async function getStats(batchId?: string | null): Promise<StatsRow> {

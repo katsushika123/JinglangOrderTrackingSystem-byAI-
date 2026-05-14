@@ -217,11 +217,14 @@ const App: React.FC = () => {
   )
 
   const handleExport = useCallback(async () => {
-    const result = await ipc.exportOrders(batchId)
-    if (result) {
-      alert(`导出成功！\n文件保存在：${result.filePath}`)
-    } else {
-      alert('没有数据可导出')
+    try {
+      const defaultName = batchId ? `${batchId}_导出.xlsx` : '全部订单_导出.xlsx'
+      const filePath = await ipc.saveExcelDialog(defaultName)
+      if (!filePath) return
+      await ipc.exportOrders(batchId, filePath)
+      alert(`导出成功！\n${filePath}`)
+    } catch (err: any) {
+      alert('导出失败: ' + (err.message || '未知错误'))
     }
   }, [batchId])
 
