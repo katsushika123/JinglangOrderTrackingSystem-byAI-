@@ -69,7 +69,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const columnWidths: Record<string, string> = {
     '数量': '56px',
     '打标': '58px',
-    '来料日期': 'auto',
+    '来料日期': '80px',
     '送货地址': 'auto',
   }
 
