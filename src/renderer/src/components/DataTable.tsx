@@ -23,7 +23,6 @@ interface DataTableProps {
   onSelectAll: (checked: boolean) => void
   onToggleCheck: (id: number, field: string) => void
   onLabelQtyChange: (id: number, qty: number) => void
-  onEdit: (order: OrderRow) => void
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
   onFiltersChange: (filters: Record<string, string>) => void
@@ -51,7 +50,6 @@ const DataTable: React.FC<DataTableProps> = ({
   onSelectAll,
   onToggleCheck,
   onLabelQtyChange,
-  onEdit,
   onShip,
   onDelete,
   onFiltersChange,
@@ -357,7 +355,6 @@ const DataTable: React.FC<DataTableProps> = ({
                 </td>
                 <td>
                   <div className="action-btns">
-                    {!editMode && <button className="btn btn-sm" onClick={() => onEdit(item)}>编辑</button>}
                     <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
                     <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
                   </div>

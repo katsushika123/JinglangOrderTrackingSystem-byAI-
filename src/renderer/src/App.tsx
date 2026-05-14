@@ -116,11 +116,6 @@ const App: React.FC = () => {
     setShowOrderModal(true)
   }, [])
 
-  const handleEdit = useCallback((order: OrderRow) => {
-    setEditingOrder(order)
-    setShowOrderModal(true)
-  }, [])
-
   const handleSaveOrder = useCallback(
     async (data: Partial<OrderRow> & { batch_name?: string }) => {
       if (editingOrder) {
@@ -296,7 +291,6 @@ const App: React.FC = () => {
         onSelectAll={handleSelectAll}
         onToggleCheck={handleToggleCheck}
         onLabelQtyChange={setLabelQty}
-        onEdit={handleEdit}
         onShip={handleShipment}
         onDelete={handleDeleteOrder}
         onFiltersChange={setFilters}
