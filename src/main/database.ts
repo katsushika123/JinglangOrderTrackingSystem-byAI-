@@ -136,7 +136,7 @@ interface OrderRow {
   送货地址: string
   来料日期: string
   打标: boolean
-  贴标: boolean
+  贴标: number
   shipments_total_qty: number
   shipments: ShipmentRow[]
   created_at: string
@@ -235,7 +235,7 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       送货地址: (row['送货地址'] as string) || '',
       来料日期: (row['来料日期'] as string) || '',
       打标: !!(row['打标'] as number),
-      贴标: !!(row['贴标'] as number),
+      贴标: (row['贴标'] as number) || 0,
       shipments_total_qty: (row.shipments_total_qty as number) || 0,
       shipments,
       created_at: (row.created_at as string) || ''
@@ -271,7 +271,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
       order.送货地址 || '',
       order.来料日期 || '',
       order.打标 ? 1 : 0,
-      order.贴标 ? 1 : 0
+      order.贴标 || 0
     ]
   )
 
@@ -294,7 +294,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
     送货地址: order.送货地址 || '',
     来料日期: order.来料日期 || '',
     打标: order.打标 || false,
-    贴标: order.贴标 || false,
+    贴标: order.贴标 || 0,
     shipments_total_qty: 0,
     shipments: [],
     created_at: new Date().toISOString()
@@ -325,7 +325,7 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
     if (key in data) {
       fields.push(`"${col}" = ?`)
       const val = (data as any)[key]
-      if (key === '打标' || key === '贴标') {
+      if (key === '打标') {
         values.push(val ? 1 : 0)
       } else {
         values.push(val ?? '')
@@ -349,8 +349,8 @@ export function deleteOrders(ids: number[]): void {
 }
 
 export function toggleOrderCheck(id: number, field: string): void {
-  if (field !== '打标' && field !== '贴标') return
-  dbRun(`UPDATE orders SET "${field}" = CASE WHEN "${field}" = 1 THEN 0 ELSE 1 END WHERE id = ?`, [id])
+  if (field !== '打标') return
+  dbRun(`UPDATE orders SET "打标" = CASE WHEN "打标" = 1 THEN 0 ELSE 1 END WHERE id = ?`, [id])
 }
 
 export function createShipment(orderId: number, shipment: Partial<ShipmentRow>): ShipmentRow {
@@ -422,7 +422,7 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
           item.送货地址 || '',
           item.来料日期 || '',
           item.打标 ? 1 : 0,
-          item.贴标 ? 1 : 0
+          item.贴标 || 0
         ]
       )
     }
@@ -443,7 +443,7 @@ export function exportOrdersToExcel(batchId: string | null): { filePath: string 
   const headers = [
     '项目号', '钣金单据编码', '物料长代码', '物料名称', '数量',
     '色号', '重量/面积/体积', '烤漆订单号', '送货地址', '来料日期',
-    '是否打标', '是否贴标', '已出货数量', '清单'
+    '是否打标', '贴标数量', '已出货数量', '清单'
   ]
 
   const rows = orders.map(o => [
@@ -458,7 +458,7 @@ export function exportOrdersToExcel(batchId: string | null): { filePath: string 
     o.送货地址,
     o.来料日期,
     o.打标 ? '是' : '否',
-    o.贴标 ? '是' : '否',
+    o.贴标 || 0,
     o.shipments_total_qty,
     o.batch_name
   ])
@@ -548,7 +548,7 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
       送货地址: String(row[colMap['送货地址']] || '').trim(),
       来料日期: new Date().toISOString().slice(0, 10),
       打标: false,
-      贴标: false,
+      贴标: 0,
     }
 
     if (weightColIdx >= 0) {

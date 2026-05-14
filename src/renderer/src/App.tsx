@@ -47,6 +47,7 @@ const App: React.FC = () => {
     removeOrder,
     removeOrders,
     toggleOrderCheck,
+    setLabelQty,
     importOrdersFromExcel,
     refresh,
   } = useOrders()
@@ -271,6 +272,7 @@ const App: React.FC = () => {
         onSelectOne={handleSelectOne}
         onSelectAll={handleSelectAll}
         onToggleCheck={handleToggleCheck}
+        onLabelQtyChange={setLabelQty}
         onEdit={handleEdit}
         onShip={handleShipment}
         onDelete={handleDeleteOrder}

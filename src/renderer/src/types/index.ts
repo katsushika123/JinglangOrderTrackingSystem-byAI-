@@ -14,7 +14,7 @@ export interface OrderRow {
   送货地址: string
   来料日期: string
   打标: boolean
-  贴标: boolean
+  贴标: number
   shipments_total_qty: number
   shipments: ShipmentRow[]
   created_at: string
@@ -59,7 +59,7 @@ export const ALL_COLUMNS: ColumnDef[] = [
   { key: '送货地址', label: '送货地址', filterable: true },
   { key: '来料日期', label: '来料日期', filterable: true },
   { key: '打标', label: '是否打标', filterable: false },
-  { key: '贴标', label: '是否贴标', filterable: false },
+  { key: '贴标', label: '贴标进度', filterable: false },
 ]
 
 export const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {

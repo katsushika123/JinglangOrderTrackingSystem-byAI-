@@ -9,6 +9,7 @@ interface DataTableProps {
   onSelectOne: (id: number, checked: boolean) => void
   onSelectAll: (checked: boolean) => void
   onToggleCheck: (id: number, field: string) => void
+  onLabelQtyChange: (id: number, qty: number) => void
   onEdit: (order: OrderRow) => void
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
@@ -34,6 +35,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onSelectOne,
   onSelectAll,
   onToggleCheck,
+  onLabelQtyChange,
   onEdit,
   onShip,
   onDelete,
@@ -67,13 +69,56 @@ const DataTable: React.FC<DataTableProps> = ({
     if (col.key === 'weightInfo') {
       return `${item.weight_value || 0} ${item.weight_unit}`
     }
-    if (col.key === '打标' || col.key === '贴标') {
+    if (col.key === '打标') {
       return (
         <input
           type="checkbox"
-          checked={!!(item as any)[col.key]}
+          checked={!!item.打标}
           onChange={() => onToggleCheck(item.id, col.key)}
         />
+      )
+    }
+    if (col.key === '贴标') {
+      const labelQty = item.贴标 || 0
+      const labelPct = item.数量 > 0 ? Math.min(Math.round((labelQty / item.数量) * 1000) / 10, 100) : 0
+      return (
+        <div style={{ minWidth: 90, padding: '2px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+            <input
+              type="number"
+              min="0"
+              max={item.数量}
+              step="any"
+              value={labelQty}
+              onChange={(e) => {
+                const v = parseFloat(e.target.value)
+                if (!isNaN(v) && v >= 0 && v <= item.数量) {
+                  onLabelQtyChange(item.id, v)
+                }
+              }}
+              style={{
+                width: 50,
+                fontSize: '0.68rem',
+                padding: '1px 3px',
+                border: '1px solid #c8c8c8',
+                borderRadius: 2,
+                textAlign: 'center',
+              }}
+            />
+            <span style={{ fontSize: '0.6rem', color: '#888', whiteSpace: 'nowrap' }}>
+              / {item.数量}
+            </span>
+          </div>
+          <div className="progress-bar-wrap" style={{ marginTop: 2, marginBottom: 0 }}>
+            <div
+              className="progress-fill"
+              style={{
+                width: `${labelPct}%`,
+                background: labelPct >= 100 ? '#0f9d58' : labelPct >= 60 ? '#f9ab00' : '#7c4dff',
+              }}
+            />
+          </div>
+        </div>
       )
     }
     return (item as any)[col.key] ?? ''

@@ -22,7 +22,7 @@ const emptyForm = {
   送货地址: '',
   来料日期: '',
   打标: false,
-  贴标: false,
+  贴标: 0,
 }
 
 const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, onSave, onClose }) => {
@@ -43,7 +43,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
         送货地址: order.送货地址,
         来料日期: order.来料日期,
         打标: order.打标,
-        贴标: order.贴标,
+        贴标: order.贴标 || 0,
       })
     } else {
       setForm({ ...emptyForm })
@@ -55,6 +55,10 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
   const handleSave = async () => {
     if (!form.物料名称 || form.数量 <= 0) {
       alert('请填写物料名称和有效数量')
+      return
+    }
+    if (form.贴标 > form.数量) {
+      alert(`贴标数量 (${form.贴标}) 不能超过总数 (${form.数量})`)
       return
     }
     const orderData: Partial<OrderRow> & { batch_name?: string } = { ...form }
@@ -155,12 +159,16 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
             是否打标
           </label>
           <label>
+            <span style={{ marginRight: 4 }}>贴标数量：</span>
             <input
-              type="checkbox"
-              checked={form.贴标}
-              onChange={(e) => setForm({ ...form, 贴标: e.target.checked })}
+              type="number"
+              min="0"
+              max={form.数量}
+              step="any"
+              value={form.贴标}
+              onChange={(e) => setForm({ ...form, 贴标: parseFloat(e.target.value) || 0 })}
+              style={{ width: 80 }}
             />
-            是否贴标
           </label>
         </div>
         <div className="modal-footer">
