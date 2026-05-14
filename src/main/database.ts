@@ -517,23 +517,29 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   const fieldMapping: Record<string, string[]> = {
     '项目号': ['项目号'],
-    '钣金单据编码': ['单据编码', '钣金单号', '钣金订单号', '钣金厂订单号'],
+    '钣金单据编码': ['单据编码', '钣金单号'],
     '物料长代码': ['物料长代码', '长代码'],
     '物料名称': ['物料名称'],
     '数量': ['数量', 'qty'],
     '色号': ['色号'],
-    '烤漆订单号': ['烤漆厂订单号', '烤漆订单号'],
+    '烤漆订单号': ['烤漆厂订单号', '烤漆订单号', '钣金厂订单号', '钣金订单号'],
     '送货地址': ['送货地址'],
   }
 
   const colMap: Record<string, number> = {}
   headers.forEach((h, idx) => {
+    let bestLen = 0
+    let bestField = ''
     for (const [field, aliases] of Object.entries(fieldMapping)) {
-      if (aliases.some(a => h.includes(a) || a.includes(h))) {
-        colMap[field] = idx
-        break
+      for (const a of aliases) {
+        const matchLen = h === a ? 999 : (h.includes(a) || a.includes(h)) ? Math.max(h.length, a.length) : 0
+        if (matchLen > bestLen) {
+          bestLen = matchLen
+          bestField = field
+        }
       }
     }
+    if (bestField) colMap[bestField] = idx
   })
 
   let weightColIdx = -1
