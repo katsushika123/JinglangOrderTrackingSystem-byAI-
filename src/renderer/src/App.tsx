@@ -40,6 +40,8 @@ const App: React.FC = () => {
     batchId,
     setBatchId,
     setFilters,
+    shipmentNo,
+    setShipmentNo,
     addOrder,
     editOrder,
     removeOrder,
@@ -159,7 +161,8 @@ const App: React.FC = () => {
   const handleResetFilters = useCallback(() => {
     setBatchId(null)
     setFilters({})
-  }, [setBatchId, setFilters])
+    setShipmentNo('')
+  }, [setBatchId, setFilters, setShipmentNo])
 
   const handleImport = useCallback(async () => {
     const filePath = await ipc.openExcelDialog()
@@ -225,6 +228,7 @@ const App: React.FC = () => {
         selectedCount={selectedIds.size}
         currentBatch={batchId || '__ALL__'}
         batches={batchOptions}
+        shipmentNo={shipmentNo}
         onAdd={handleAdd}
         onImport={handleImport}
         onExport={handleExport}
@@ -232,6 +236,7 @@ const App: React.FC = () => {
         onToggleColumnPanel={() => setShowColPanel(!showColPanel)}
         onBatchChange={(name) => setBatchId(name === '__ALL__' ? null : name)}
         onBatchDelete={handleBatchDelete}
+        onShipmentNoChange={setShipmentNo}
       >
         {showColPanel && (
           <ColumnPanel

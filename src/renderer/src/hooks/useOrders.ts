@@ -8,8 +8,10 @@ export interface UseOrdersReturn {
   loading: boolean
   batchId: string | null
   filters: Record<string, string>
+  shipmentNo: string
   setBatchId: (id: string | null) => void
   setFilters: (filters: Record<string, string>) => void
+  setShipmentNo: (no: string) => void
   refresh: () => Promise<void>
   addOrder: (order: Partial<OrderRow> & { batch_name?: string }) => Promise<OrderRow>
   editOrder: (id: number, data: Partial<OrderRow>) => Promise<void>
@@ -26,13 +28,14 @@ export function useOrders(): UseOrdersReturn {
   const [loading, setLoading] = useState(false)
   const [batchId, setBatchId] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string>>({})
+  const [shipmentNo, setShipmentNo] = useState('')
   const mountedRef = useRef(true)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const [data, s] = await Promise.all([
-        ipc.getOrders(batchId, filters),
+        ipc.getOrders(batchId, filters, shipmentNo),
         ipc.getStats(batchId)
       ])
       if (mountedRef.current) {
@@ -44,7 +47,7 @@ export function useOrders(): UseOrdersReturn {
     } finally {
       if (mountedRef.current) setLoading(false)
     }
-  }, [batchId, filters])
+  }, [batchId, filters, shipmentNo])
 
   useEffect(() => {
     mountedRef.current = true
@@ -102,8 +105,10 @@ export function useOrders(): UseOrdersReturn {
     loading,
     batchId,
     filters,
+    shipmentNo,
     setBatchId,
     setFilters,
+    setShipmentNo,
     refresh: fetchData,
     addOrder,
     editOrder,

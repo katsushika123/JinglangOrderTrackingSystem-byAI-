@@ -6,8 +6,8 @@ export async function getBatches(): Promise<BatchRow[]> {
   return api.getBatches()
 }
 
-export async function getOrders(batchId?: string | null, filters?: Record<string, string>): Promise<OrderRow[]> {
-  return api.getOrders(batchId ?? null, filters ?? {})
+export async function getOrders(batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string): Promise<OrderRow[]> {
+  return api.getOrders(batchId ?? null, filters ?? {}, shipmentNo ?? '')
 }
 
 export async function createOrder(order: Partial<OrderRow> & { batch_name?: string }): Promise<OrderRow> {

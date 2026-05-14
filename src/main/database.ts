@@ -178,7 +178,7 @@ export function createBatch(name: string): BatchRow {
   return rows[0] as unknown as BatchRow
 }
 
-export function getOrders(batchId: string | null, filters: Record<string, string>): OrderRow[] {
+export function getOrders(batchId: string | null, filters: Record<string, string>, shipmentNo = ''): OrderRow[] {
   let sql = `
     SELECT o.*, b.name AS batch_name,
       COALESCE((SELECT SUM(出货数量) FROM shipments WHERE order_id = o.id), 0) AS shipments_total_qty
@@ -205,6 +205,11 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       sql += ` AND LOWER(o."${field}") LIKE ?`
       params.push(`%${keyword}%`)
     }
+  }
+
+  if (shipmentNo.trim()) {
+    sql += ` AND EXISTS (SELECT 1 FROM shipments WHERE order_id = o.id AND 出货单号 LIKE ?)`
+    params.push(`%${shipmentNo.trim()}%`)
   }
 
   sql += ` ORDER BY o.id DESC`

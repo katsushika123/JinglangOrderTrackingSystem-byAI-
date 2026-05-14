@@ -2,7 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 export interface ElectronAPI {
   getBatches: () => Promise<BatchRow[]>
-  getOrders: (batchId?: string | null, filters?: Record<string, string>) => Promise<OrderRow[]>
+  getOrders: (batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string) => Promise<OrderRow[]>
   createOrder: (order: Partial<OrderRow>) => Promise<OrderRow>
   updateOrder: (id: number, data: Partial<OrderRow>) => Promise<void>
   deleteOrder: (id: number) => Promise<void>
@@ -64,7 +64,7 @@ export interface StatsRow {
 
 const api: ElectronAPI = {
   getBatches: () => ipcRenderer.invoke('db:getBatches'),
-  getOrders: (batchId, filters) => ipcRenderer.invoke('db:getOrders', batchId, filters),
+  getOrders: (batchId, filters, shipmentNo) => ipcRenderer.invoke('db:getOrders', batchId, filters, shipmentNo),
   createOrder: (order) => ipcRenderer.invoke('db:createOrder', order),
   updateOrder: (id, data) => ipcRenderer.invoke('db:updateOrder', id, data),
   deleteOrder: (id) => ipcRenderer.invoke('db:deleteOrder', id),

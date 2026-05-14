@@ -5,6 +5,7 @@ interface ToolbarProps {
   selectedCount: number
   currentBatch: string
   batches: Array<{ name: string; count: number }>
+  shipmentNo: string
   onAdd: () => void
   onImport: () => void
   onExport: () => void
@@ -12,6 +13,7 @@ interface ToolbarProps {
   onToggleColumnPanel: () => void
   onBatchChange: (name: string) => void
   onBatchDelete: () => void
+  onShipmentNoChange: (no: string) => void
   children?: React.ReactNode
 }
 
@@ -26,6 +28,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleColumnPanel,
   onBatchChange,
   onBatchDelete,
+  shipmentNo,
+  onShipmentNoChange,
   children,
 }) => {
   return (
@@ -39,6 +43,15 @@ const Toolbar: React.FC<ToolbarProps> = ({
       <button className="btn" onClick={onResetFilters}>&#x1F504; 清除筛选</button>
       <button className="btn" onClick={onToggleColumnPanel}>&#x1F4CA; 列显示</button>
       <span className="spacer" />
+      <span style={{ fontSize: '0.75rem', color: '#555' }}>出货单号：</span>
+      <input
+        type="text"
+        className="filter-input"
+        style={{ width: 140, marginTop: 0, marginBottom: 0 }}
+        placeholder="搜索出货单号…"
+        value={shipmentNo}
+        onChange={(e) => onShipmentNoChange(e.target.value)}
+      />
       <span style={{ fontSize: '0.75rem', color: '#555' }}>清单：</span>
       <select
         className="batch-select"
