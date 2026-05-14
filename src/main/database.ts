@@ -528,11 +528,13 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   const colMap: Record<string, number> = {}
   headers.forEach((h, idx) => {
+    const hn = h.replace(/\s+/g, '')
     let bestLen = 0
     let bestField = ''
     for (const [field, aliases] of Object.entries(fieldMapping)) {
       for (const a of aliases) {
-        const matchLen = h === a ? 999 : (h.includes(a) || a.includes(h)) ? Math.max(h.length, a.length) : 0
+        const an = a.replace(/\s+/g, '')
+        const matchLen = hn === an ? 999 : (hn.includes(an) || an.includes(hn)) ? Math.max(hn.length, an.length) : 0
         if (matchLen > bestLen) {
           bestLen = matchLen
           bestField = field
