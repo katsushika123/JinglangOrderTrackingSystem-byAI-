@@ -416,7 +416,8 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
     const batchRows = dbAll(`SELECT id FROM batches WHERE name = ?`, [batchName])
     const batchId = (batchRows[0]?.id as number) || 0
 
-    for (const item of orders) {
+    for (let i = orders.length - 1; i >= 0; i--) {
+      const item = orders[i]
       db.run(
         `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
