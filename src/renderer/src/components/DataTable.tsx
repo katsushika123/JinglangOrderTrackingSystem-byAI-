@@ -73,6 +73,13 @@ const DataTable: React.FC<DataTableProps> = ({
     '送货地址': 'auto',
   }
 
+  const getCellText = (item: OrderRow, col: ColumnDef): string => {
+    if (col.key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
+    if (col.key === '打标') return item.打标 ? '是' : '否'
+    if (col.key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
+    return String((item as any)[col.key] ?? '')
+  }
+
   const renderCell = (item: OrderRow, col: ColumnDef) => {
     if (col.key === 'weightInfo') {
       return `${item.weight_value || 0} ${item.weight_unit}`
@@ -187,7 +194,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 {visibleColumns.map((key) => {
                   const col = columns.find((c) => c.key === key)
                   if (!col) return null
-                  return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined}>{renderCell(item, col)}</td>
+                  return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined} title={getCellText(item, col)}>{renderCell(item, col)}</td>
                 })}
                 <td className="progress-cell">
                   <div className="progress-bar-wrap">
