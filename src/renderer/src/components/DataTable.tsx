@@ -42,6 +42,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onFiltersChange,
 }) => {
   const [localFilters, setLocalFilters] = useState<Record<string, string>>({})
+  const [labelEdits, setLabelEdits] = useState<Record<number, string>>({})
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const handleFilterInput = useCallback(
@@ -87,6 +88,18 @@ const DataTable: React.FC<DataTableProps> = ({
     if (col.key === '贴标') {
       const labelQty = item.贴标 || 0
       const labelPct = item.数量 > 0 ? Math.min(Math.round((labelQty / item.数量) * 1000) / 10, 100) : 0
+      const editVal = labelEdits[item.id] ?? String(labelQty)
+      const handleBlur = () => {
+        const v = parseFloat(editVal)
+        if (!isNaN(v) && v >= 0 && v <= item.数量) {
+          onLabelQtyChange(item.id, v)
+        }
+        setLabelEdits(prev => {
+          const next = { ...prev }
+          delete next[item.id]
+          return next
+        })
+      }
       return (
         <div style={{ minWidth: 90, padding: '2px 0' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
@@ -95,13 +108,9 @@ const DataTable: React.FC<DataTableProps> = ({
               min="0"
               max={item.数量}
               step="any"
-              value={labelQty}
-              onChange={(e) => {
-                const v = parseFloat(e.target.value)
-                if (!isNaN(v) && v >= 0 && v <= item.数量) {
-                  onLabelQtyChange(item.id, v)
-                }
-              }}
+              value={editVal}
+              onChange={(e) => setLabelEdits(prev => ({ ...prev, [item.id]: e.target.value }))}
+              onBlur={handleBlur}
               style={{
                 width: 50,
                 fontSize: '0.68rem',

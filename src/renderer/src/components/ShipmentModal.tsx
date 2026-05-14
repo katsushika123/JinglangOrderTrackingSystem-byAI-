@@ -10,7 +10,7 @@ interface ShipmentModalProps {
 }
 
 const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, onDataChanged }) => {
-  const [form, setForm] = useState({ 出货日期: '', 出货单号: '', 出货数量: 0 })
+  const [form, setForm] = useState({ 出货日期: '', 出货单号: '', 出货数量: '' })
   const [editingId, setEditingId] = useState<number | null>(null)
 
   if (!visible || !order) return null
@@ -20,13 +20,16 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const remaining = order.数量 - shippedTotal
   const shippable = Math.max(0, labelQty - shippedTotal)
 
+  const getQty = () => parseFloat(form.出货数量) || 0
+
   const resetForm = () => {
-    setForm({ 出货日期: '', 出货单号: '', 出货数量: 0 })
+    setForm({ 出货日期: '', 出货单号: '', 出货数量: '' })
     setEditingId(null)
   }
 
   const handleAddOrUpdate = async () => {
-    if (!form.出货日期 || !form.出货单号 || form.出货数量 <= 0) {
+    const qty = getQty()
+    if (!form.出货日期 || !form.出货单号 || qty <= 0) {
       alert('请完整填写出货信息')
       return
     }
@@ -34,19 +37,19 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
     const editQty = editingId
       ? (order.shipments.find((s) => s.id === editingId)?.出货数量 || 0)
       : 0
-    if (shippedTotal + form.出货数量 - editQty > order.数量) {
+    if (shippedTotal + qty - editQty > order.数量) {
       alert('出货数量不能超过来料总数')
       return
     }
-    if (shippedTotal + form.出货数量 - editQty > labelQty) {
+    if (shippedTotal + qty - editQty > labelQty) {
       alert(`出货数量不能超过贴标数量 (${labelQty})`)
       return
     }
 
     if (editingId) {
-      await ipc.updateShipment(editingId, form)
+      await ipc.updateShipment(editingId, { ...form, 出货数量: qty })
     } else {
-      await ipc.createShipment(order.id, form)
+      await ipc.createShipment(order.id, { ...form, 出货数量: qty })
     }
     resetForm()
     onDataChanged()
@@ -57,7 +60,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
     setForm({
       出货日期: ship.出货日期,
       出货单号: ship.出货单号,
-      出货数量: ship.出货数量,
+      出货数量: String(ship.出货数量 || ''),
     })
   }
 
@@ -93,7 +96,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
                 min="0"
                 step="any"
                 value={form.出货数量}
-                onChange={(e) => setForm({ ...form, 出货数量: parseFloat(e.target.value) || 0 })}
+                onChange={(e) => setForm({ ...form, 出货数量: e.target.value })}
               />
             </div>
             <div style={{ display: 'flex', gap: 3, alignItems: 'center' }}>
