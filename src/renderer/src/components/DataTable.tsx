@@ -65,6 +65,12 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const allSelected = orders.length > 0 && orders.every((o) => selectedIds.has(o.id))
 
+  const columnWidths: Record<string, string> = {
+    '数量': '56px',
+    '打标': '58px',
+    '送货地址': 'auto',
+  }
+
   const renderCell = (item: OrderRow, col: ColumnDef) => {
     if (col.key === 'weightInfo') {
       return `${item.weight_value || 0} ${item.weight_unit}`
@@ -137,7 +143,7 @@ const DataTable: React.FC<DataTableProps> = ({
               const col = columns.find((c) => c.key === key)
               if (!col) return null
               return (
-                <th key={col.key}>
+                <th key={col.key} style={columnWidths[col.key] ? { width: columnWidths[col.key] } : undefined}>
                   <span className="th-content">{col.label}</span>
                   {col.filterable && (
                     <input
@@ -151,8 +157,8 @@ const DataTable: React.FC<DataTableProps> = ({
                 </th>
               )
             })}
-            <th><span className="th-content">进度</span></th>
-            <th><span className="th-content">操作</span></th>
+            <th style={{ width: '100px' }}><span className="th-content">进度</span></th>
+            <th style={{ width: '130px' }}><span className="th-content">操作</span></th>
           </tr>
         </thead>
         <tbody>
@@ -186,9 +192,9 @@ const DataTable: React.FC<DataTableProps> = ({
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn btn-sm" onClick={() => onEdit(item)}>&#x270F;&#xFE0F;</button>
-                    <button className="btn btn-sm success" onClick={() => onShip(item)}>&#x1F4E6;</button>
-                    <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>&#x1F5D1;</button>
+                    <button className="btn btn-sm" onClick={() => onEdit(item)}>编辑</button>
+                    <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
+                    <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
                   </div>
                 </td>
               </tr>
