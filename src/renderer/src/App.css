@@ -472,3 +472,19 @@ table.excel-table tbody tr:hover td {
   font-size: 0.8rem;
   cursor: pointer;
 }
+
+.col-resize-handle {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  z-index: 5;
+  user-select: none;
+}
+
+.col-resize-handle:hover {
+  background: #1a73e8;
+  opacity: 0.3;
+}

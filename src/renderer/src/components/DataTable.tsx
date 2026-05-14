@@ -1,6 +1,19 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react'
 import type { OrderRow, ColumnDef } from '../types'
 
+const COL_WIDTHS_KEY = 'column_widths'
+
+function loadColumnWidths(): Record<string, number> {
+  try {
+    const saved = localStorage.getItem(COL_WIDTHS_KEY)
+    return saved ? JSON.parse(saved) : {}
+  } catch { return {} }
+}
+
+function saveColumnWidths(w: Record<string, number>) {
+  localStorage.setItem(COL_WIDTHS_KEY, JSON.stringify(w))
+}
+
 interface DataTableProps {
   orders: OrderRow[]
   columns: ColumnDef[]
@@ -43,7 +56,9 @@ const DataTable: React.FC<DataTableProps> = ({
 }) => {
   const [localFilters, setLocalFilters] = useState<Record<string, string>>({})
   const [labelEdits, setLabelEdits] = useState<Record<number, string>>({})
+  const [resizedWidths, setResizedWidths] = useState<Record<string, number>>(loadColumnWidths)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resizeRef = useRef<{ key: string; startX: number; startW: number } | null>(null)
 
   const handleFilterInput = useCallback(
     (key: string, value: string) => {
@@ -64,7 +79,39 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   }, [])
 
+  const handleResizeStart = useCallback((colKey: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const th = (e.currentTarget as HTMLElement).parentElement
+    const startW = th?.offsetWidth ?? 100
+    resizeRef.current = { key: colKey, startX: e.clientX, startW }
+    document.addEventListener('mousemove', handleResizeMove)
+    document.addEventListener('mouseup', handleResizeEnd)
+  }, [])
+
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!resizeRef.current) return
+    const { key, startX, startW } = resizeRef.current
+    const newWidth = Math.max(40, startW + (e.clientX - startX))
+    setResizedWidths(prev => ({ ...prev, [key]: newWidth }))
+  }, [])
+
+  const handleResizeEnd = useCallback(() => {
+    resizeRef.current = null
+    document.removeEventListener('mousemove', handleResizeMove)
+    document.removeEventListener('mouseup', handleResizeEnd)
+    setResizedWidths(prev => {
+      saveColumnWidths(prev)
+      return prev
+    })
+  }, [handleResizeMove])
+
   const allSelected = orders.length > 0 && orders.every((o) => selectedIds.has(o.id))
+
+  const getColWidth = (key: string): string | undefined => {
+    if (resizedWidths[key]) return `${resizedWidths[key]}px`
+    return columnWidths[key] || undefined
+  }
 
   const columnWidths: Record<string, string> = {
     '数量': '56px',
@@ -160,7 +207,7 @@ const DataTable: React.FC<DataTableProps> = ({
               const col = columns.find((c) => c.key === key)
               if (!col) return null
               return (
-                <th key={col.key} style={columnWidths[col.key] ? { width: columnWidths[col.key] } : undefined}>
+                <th key={col.key} style={getColWidth(col.key) ? { width: getColWidth(col.key), position: 'relative' } : { position: 'relative' }}>
                   <span className="th-content">{col.label}</span>
                   {col.filterable && (
                     <input
@@ -171,6 +218,10 @@ const DataTable: React.FC<DataTableProps> = ({
                       onChange={(e) => handleFilterInput(col.key, e.target.value)}
                     />
                   )}
+                  <div
+                    className="col-resize-handle"
+                    onMouseDown={(e) => handleResizeStart(col.key, e)}
+                  />
                 </th>
               )
             })}
