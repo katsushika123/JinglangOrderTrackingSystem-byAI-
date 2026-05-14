@@ -528,12 +528,12 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   const colMap: Record<string, number> = {}
   headers.forEach((h, idx) => {
-    const hn = h.replace(/\s+/g, '')
+    const hn = h.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
     let bestLen = 0
     let bestField = ''
     for (const [field, aliases] of Object.entries(fieldMapping)) {
       for (const a of aliases) {
-        const an = a.replace(/\s+/g, '')
+        const an = a.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
         const matchLen = hn === an ? 999 : (hn.includes(an) || an.includes(hn)) ? Math.max(hn.length, an.length) : 0
         if (matchLen > bestLen) {
           bestLen = matchLen
