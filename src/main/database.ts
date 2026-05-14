@@ -324,7 +324,6 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
     '色号': '色号',
     'weight_value': 'weight_value',
     'weight_unit': 'weight_unit',
-    '烤漆订单号': '烤漆订单号',
     '送货地址': '送货地址',
     '来料日期': '来料日期',
     '打标': '打标',
@@ -410,16 +409,19 @@ export function deleteShipment(id: number): void {
 
 export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: string): number {
   if (!db) throw new Error('Database not initialized')
-  const batch = createBatch(batchName)
 
   db.run('BEGIN TRANSACTION')
   try {
+    db.run(`INSERT OR IGNORE INTO batches (name) VALUES (?)`, [batchName])
+    const batchRows = dbAll(`SELECT id FROM batches WHERE name = ?`, [batchName])
+    const batchId = (batchRows[0]?.id as number) || 0
+
     for (const item of orders) {
       db.run(
         `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
-          batch.id,
+          batchId,
           item.项目号 || '',
           item.钣金单据编码 || '',
           item.物料长代码 || '',
