@@ -517,7 +517,7 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   const fieldMapping: Record<string, string[]> = {
     '项目号': ['项目号'],
-    '钣金单据编码': ['单据编码', '钣金单号'],
+    '钣金单据编码': ['单据编码', '钣金单号', '钣金订单号', '钣金厂订单号'],
     '物料长代码': ['物料长代码', '长代码'],
     '物料名称': ['物料名称'],
     '数量': ['数量', 'qty'],
