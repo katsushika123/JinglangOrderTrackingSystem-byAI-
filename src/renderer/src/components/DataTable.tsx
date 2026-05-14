@@ -69,6 +69,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const columnWidths: Record<string, string> = {
     '数量': '56px',
     '打标': '58px',
+    '来料日期': 'auto',
     '送货地址': 'auto',
   }
 
@@ -166,7 +167,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 </th>
               )
             })}
-            <th style={{ width: '100px' }}><span className="th-content">进度</span></th>
+            <th style={{ width: '100px' }}><span className="th-content">出货进度</span></th>
             <th style={{ width: '130px' }}><span className="th-content">操作</span></th>
           </tr>
         </thead>
@@ -186,7 +187,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 {visibleColumns.map((key) => {
                   const col = columns.find((c) => c.key === key)
                   if (!col) return null
-                  return <td key={col.key}>{renderCell(item, col)}</td>
+                  return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined}>{renderCell(item, col)}</td>
                 })}
                 <td className="progress-cell">
                   <div className="progress-bar-wrap">
