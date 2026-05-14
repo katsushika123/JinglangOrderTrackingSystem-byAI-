@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import Toolbar from './components/Toolbar'
 import StatsBar from './components/StatsBar'
 import DataTable from './components/DataTable'
@@ -63,6 +63,18 @@ const App: React.FC = () => {
   const [showBatchNameDialog, setShowBatchNameDialog] = useState(false)
   const [batchDefaultName, setBatchDefaultName] = useState('')
   const [pendingImportOrders, setPendingImportOrders] = useState<Partial<OrderRow>[]>([])
+
+  const shipmentIdRef = React.useRef<number | null>(null)
+  useEffect(() => {
+    shipmentIdRef.current = shipmentOrder?.id ?? null
+  }, [shipmentOrder])
+
+  useEffect(() => {
+    if (shipmentIdRef.current && showShipmentModal) {
+      const updated = orders.find((o) => o.id === shipmentIdRef.current)
+      if (updated) setShipmentOrder(updated)
+    }
+  }, [orders, showShipmentModal])
 
   const visibleColumnKeys = useMemo(
     () => ALL_COLUMNS.filter((col) => colVisibility[col.key] !== false).map((col) => col.key),
