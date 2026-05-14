@@ -6,6 +6,7 @@ interface ToolbarProps {
   currentBatch: string
   batches: Array<{ name: string; count: number }>
   shipmentNo: string
+  editMode: boolean
   onAdd: () => void
   onImport: () => void
   onExport: () => void
@@ -14,6 +15,7 @@ interface ToolbarProps {
   onBatchChange: (name: string) => void
   onBatchDelete: () => void
   onShipmentNoChange: (no: string) => void
+  onToggleEditMode: () => void
   children?: React.ReactNode
 }
 
@@ -30,6 +32,8 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onBatchDelete,
   shipmentNo,
   onShipmentNoChange,
+  editMode,
+  onToggleEditMode,
   children,
 }) => {
   return (
@@ -42,6 +46,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
       <button className="btn" onClick={onExport}>&#x1F4E5; 导出</button>
       <button className="btn" onClick={onResetFilters}>&#x1F504; 清除筛选</button>
       <button className="btn" onClick={onToggleColumnPanel}>&#x1F4CA; 列显示</button>
+      <button className={`btn ${editMode ? 'primary' : ''}`} onClick={onToggleEditMode}>
+        &#x270F;&#xFE0F; {editMode ? '退出编辑' : '编辑模式'}
+      </button>
       <span className="spacer" />
       <span style={{ fontSize: '0.75rem', color: '#555' }}>出货单号：</span>
       <input

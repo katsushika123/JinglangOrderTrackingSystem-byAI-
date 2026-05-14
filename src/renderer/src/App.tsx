@@ -64,6 +64,7 @@ const App: React.FC = () => {
   const [showBatchNameDialog, setShowBatchNameDialog] = useState(false)
   const [batchDefaultName, setBatchDefaultName] = useState('')
   const [pendingImportOrders, setPendingImportOrders] = useState<Partial<OrderRow>[]>([])
+  const [editMode, setEditMode] = useState(false)
 
   const shipmentIdRef = React.useRef<number | null>(null)
   useEffect(() => {
@@ -217,6 +218,22 @@ const App: React.FC = () => {
     [pendingImportOrders, importOrdersFromExcel, setBatchId, refreshBatches]
   )
 
+  const handleToggleEditMode = useCallback(() => {
+    if (!editMode) {
+      if (!confirm('开启编辑模式后可直接在单元格中修改数据\n1. 数据不能为空值\n2. 修改后按回车键保存\n\n确定开启？')) return
+    }
+    setEditMode(prev => !prev)
+  }, [editMode])
+
+  const handleCellChange = useCallback(async (id: number, field: string, value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    const numFields = ['数量', 'weight_value']
+    const val: string | number = numFields.includes(field) ? (parseFloat(trimmed) || 0) : trimmed
+    if (numFields.includes(field) && val === 0) return
+    await editOrder(id, { [field]: val })
+  }, [editOrder])
+
   const handleExport = useCallback(async () => {
     try {
       const defaultName = batchId ? `${batchId}_导出.xlsx` : '全部订单_导出.xlsx'
@@ -256,6 +273,8 @@ const App: React.FC = () => {
         onBatchChange={(name) => setBatchId(name === '__ALL__' ? null : name)}
         onBatchDelete={handleBatchDelete}
         onShipmentNoChange={setShipmentNo}
+        editMode={editMode}
+        onToggleEditMode={handleToggleEditMode}
       >
         {showColPanel && (
           <ColumnPanel
@@ -281,6 +300,8 @@ const App: React.FC = () => {
         onShip={handleShipment}
         onDelete={handleDeleteOrder}
         onFiltersChange={setFilters}
+        editMode={editMode}
+        onCellChange={handleCellChange}
       />
 
       <OrderModal

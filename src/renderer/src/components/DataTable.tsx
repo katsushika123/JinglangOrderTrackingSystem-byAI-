@@ -27,6 +27,8 @@ interface DataTableProps {
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
   onFiltersChange: (filters: Record<string, string>) => void
+  editMode?: boolean
+  onCellChange?: (id: number, field: string, value: string) => void
 }
 
 function getProgress(item: OrderRow): number {
@@ -53,9 +55,12 @@ const DataTable: React.FC<DataTableProps> = ({
   onShip,
   onDelete,
   onFiltersChange,
+  editMode,
+  onCellChange,
 }) => {
   const [localFilters, setLocalFilters] = useState<Record<string, string>>({})
   const [labelEdits, setLabelEdits] = useState<Record<number, string>>({})
+  const [cellEdits, setCellEdits] = useState<Record<string, string>>({})
   const [resizedWidths, setResizedWidths] = useState<Record<string, number>>(loadColumnWidths)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resizeRef = useRef<{ key: string; startX: number; startW: number } | null>(null)
@@ -120,11 +125,62 @@ const DataTable: React.FC<DataTableProps> = ({
     '送货地址': 'auto',
   }
 
+  const EDITABLE_COLUMNS: Record<string, 'text' | 'number' | 'date'> = {
+    '项目号': 'text',
+    '钣金单据编码': 'text',
+    '物料长代码': 'text',
+    '物料名称': 'text',
+    '数量': 'number',
+    '色号': 'text',
+    '送货地址': 'text',
+    '来料日期': 'date',
+  }
+
+  const getCellEditKey = (id: number, colKey: string) => `${id}_${colKey}`
+
+  const handleCellEditStart = (id: number, colKey: string, currentVal: string) => {
+    const key = getCellEditKey(id, colKey)
+    setCellEdits(prev => {
+      if (prev[key] !== undefined) return prev
+      return { ...prev, [key]: currentVal }
+    })
+  }
+
+  const handleCellEditSave = (id: number, colKey: string) => {
+    const key = getCellEditKey(id, colKey)
+    const val = cellEdits[key]
+    if (val !== undefined && onCellChange) {
+      onCellChange(id, colKey, val)
+    }
+    setCellEdits(prev => {
+      const next = { ...prev }
+      delete next[key]
+      return next
+    })
+  }
+
+  const getCellValue = (item: OrderRow, colKey: string): string => {
+    if (colKey === '数量') return String(item.数量 || '')
+    if (colKey === 'weight_value') return String(item.weight_value || '')
+    return String((item as any)[colKey] ?? '')
+  }
+
   const getCellText = (item: OrderRow, col: ColumnDef): string => {
     if (col.key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
     if (col.key === '打标') return item.打标 ? '是' : '否'
     if (col.key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
     return String((item as any)[col.key] ?? '')
+  }
+
+  const EDIT_INPUT_STYLE: React.CSSProperties = {
+    fontSize: '0.68rem',
+    padding: '1px 4px',
+    border: '2px solid #1a73e8',
+    borderRadius: 2,
+    outline: 'none',
+    width: '100%',
+    fontFamily: 'inherit',
+    background: '#fffde7',
   }
 
   const renderCell = (item: OrderRow, col: ColumnDef) => {
@@ -189,6 +245,47 @@ const DataTable: React.FC<DataTableProps> = ({
             />
           </div>
         </div>
+      )
+    }
+    if (editMode && EDITABLE_COLUMNS[col.key]) {
+      const editType = EDITABLE_COLUMNS[col.key]
+      const editKey = getCellEditKey(item.id, col.key)
+      const cellVal = cellEdits[editKey] ?? getCellValue(item, col.key)
+      const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleCellEditSave(item.id, col.key)
+        if (e.key === 'Escape') {
+          setCellEdits(prev => {
+            const next = { ...prev }
+            delete next[editKey]
+            return next
+          })
+        }
+      }
+      if (editType === 'date') {
+        return (
+          <input
+            type="date"
+            value={cellVal}
+            onChange={(e) => setCellEdits(prev => ({ ...prev, [editKey]: e.target.value }))}
+            onFocus={() => handleCellEditStart(item.id, col.key, getCellValue(item, col.key))}
+            onBlur={() => handleCellEditSave(item.id, col.key)}
+            onKeyDown={handleKeyDown}
+            style={{ ...EDIT_INPUT_STYLE, width: '100%' }}
+            className="edit-cell-input"
+          />
+        )
+      }
+      return (
+        <input
+          type={editType}
+          value={cellVal}
+          onChange={(e) => setCellEdits(prev => ({ ...prev, [editKey]: e.target.value }))}
+          onFocus={() => handleCellEditStart(item.id, col.key, getCellValue(item, col.key))}
+          onBlur={() => handleCellEditSave(item.id, col.key)}
+          onKeyDown={handleKeyDown}
+          style={EDIT_INPUT_STYLE}
+          className="edit-cell-input"
+        />
       )
     }
     return (item as any)[col.key] ?? ''
@@ -260,7 +357,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn btn-sm" onClick={() => onEdit(item)}>编辑</button>
+                    {!editMode && <button className="btn btn-sm" onClick={() => onEdit(item)}>编辑</button>}
                     <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
                     <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
                   </div>
