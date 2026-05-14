@@ -18,7 +18,6 @@ const emptyForm = {
   色号: '',
   weight_value: 0,
   weight_unit: 'kg' as string,
-  烤漆订单号: '',
   送货地址: '',
   来料日期: '',
   打标: false,
@@ -39,7 +38,6 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
         色号: order.色号,
         weight_value: order.weight_value,
         weight_unit: order.weight_unit,
-        烤漆订单号: order.烤漆订单号,
         送货地址: order.送货地址,
         来料日期: order.来料日期,
         打标: order.打标,
@@ -132,10 +130,6 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
           </div>
         </div>
         <div className="form-row">
-          <div className="form-group">
-            <label>烤漆订单号</label>
-            <input value={form.烤漆订单号} onChange={(e) => setForm({ ...form, 烤漆订单号: e.target.value })} />
-          </div>
           <div className="form-group">
             <label>送货地址</label>
             <input value={form.送货地址} onChange={(e) => setForm({ ...form, 送货地址: e.target.value })} />

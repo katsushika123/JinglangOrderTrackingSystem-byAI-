@@ -132,7 +132,6 @@ interface OrderRow {
   色号: string
   weight_value: number
   weight_unit: string
-  烤漆订单号: string
   送货地址: string
   来料日期: string
   打标: boolean
@@ -198,7 +197,7 @@ export function getOrders(batchId: string | null, filters: Record<string, string
     }
   }
 
-  const filterableFields = ['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '烤漆订单号', '送货地址', '来料日期']
+  const filterableFields = ['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '送货地址', '来料日期']
   for (const field of filterableFields) {
     const keyword = filters[field]?.trim().toLowerCase()
     if (keyword) {
@@ -244,8 +243,7 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       数量: (row['数量'] as number) || 0,
       色号: (row['色号'] as string) || '',
       weight_value: (row.weight_value as number) || 0,
-      weight_unit: (row.weight_unit as string) || 'kg',
-      烤漆订单号: (row['烤漆订单号'] as string) || '',
+       weight_unit: (row.weight_unit as string) || 'kg',
       送货地址: (row['送货地址'] as string) || '',
       来料日期: (row['来料日期'] as string) || '',
       打标: !!(row['打标'] as number),
@@ -269,8 +267,8 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
   }
 
   dbRun(
-    `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 烤漆订单号, 送货地址, 来料日期, 打标, 贴标)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       batchId,
       order.项目号 || '',
@@ -281,7 +279,6 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
       order.色号 || '',
       order.weight_value || 0,
       order.weight_unit || 'kg',
-      order.烤漆订单号 || '',
       order.送货地址 || '',
       order.来料日期 || '',
       order.打标 ? 1 : 0,
@@ -303,9 +300,8 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
     数量: order.数量 || 0,
     色号: order.色号 || '',
     weight_value: order.weight_value || 0,
-    weight_unit: order.weight_unit || 'kg',
-    烤漆订单号: order.烤漆订单号 || '',
-    送货地址: order.送货地址 || '',
+     weight_unit: order.weight_unit || 'kg',
+     送货地址: order.送货地址 || '',
     来料日期: order.来料日期 || '',
     打标: order.打标 || false,
     贴标: order.贴标 || 0,
@@ -420,8 +416,8 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
   try {
     for (const item of orders) {
       db.run(
-        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 烤漆订单号, 送货地址, 来料日期, 打标, 贴标)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           batch.id,
           item.项目号 || '',
@@ -432,7 +428,6 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
           item.色号 || '',
           item.weight_value || 0,
           item.weight_unit || 'kg',
-          item.烤漆订单号 || '',
           item.送货地址 || '',
           item.来料日期 || '',
           item.打标 ? 1 : 0,
@@ -456,7 +451,7 @@ export function exportOrdersToExcel(batchId: string | null, filePath: string): v
 
   const headers = [
     '项目号', '钣金单据编码', '物料长代码', '物料名称', '数量',
-    '色号', '重量/面积/体积', '烤漆订单号', '送货地址', '来料日期',
+    '色号', '重量/面积/体积', '送货地址', '来料日期',
     '是否打标', '贴标数量', '已出货数量', '清单'
   ]
 
@@ -468,7 +463,6 @@ export function exportOrdersToExcel(batchId: string | null, filePath: string): v
     o.数量,
     o.色号,
     o.weight_value ? `${o.weight_value} ${o.weight_unit}` : '',
-    o.烤漆订单号,
     o.送货地址,
     o.来料日期,
     o.打标 ? '是' : '否',
@@ -522,7 +516,6 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     '物料名称': ['物料名称'],
     '数量': ['数量', 'qty'],
     '色号': ['色号'],
-    '烤漆订单号': ['烤漆厂订单号', '烤漆订单号', '钣金厂订单号', '钣金订单号'],
     '送货地址': ['送货地址'],
   }
 
@@ -562,9 +555,8 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
       物料长代码: String(row[colMap['物料长代码']] || '').trim(),
       物料名称: String(row[colMap['物料名称']] || '').trim(),
       数量: parseFloat(String(row[colMap['数量']])) || 0,
-      色号: String(row[colMap['色号']] || '').trim(),
-      烤漆订单号: String(row[colMap['烤漆订单号']] || '').trim(),
-      送货地址: String(row[colMap['送货地址']] || '').trim(),
+       色号: String(row[colMap['色号']] || '').trim(),
+       送货地址: String(row[colMap['送货地址']] || '').trim(),
       来料日期: new Date().toISOString().slice(0, 10),
       打标: false,
       贴标: 0,
