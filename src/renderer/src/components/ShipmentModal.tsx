@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import type { OrderRow, ShipmentRow } from '../types'
 import * as ipc from '../ipc'
 
@@ -13,6 +13,13 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const [form, setForm] = useState({ 出货日期: '', 出货单号: '', 出货数量: '' })
   const [editingId, setEditingId] = useState<number | null>(null)
 
+  useEffect(() => {
+    if (visible) {
+      setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
+      setEditingId(null)
+    }
+  }, [visible])
+
   if (!visible || !order) return null
 
   const shippedTotal = order.shipments.reduce((sum, s) => sum + s.出货数量, 0)
@@ -23,7 +30,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const getQty = () => parseFloat(form.出货数量) || 0
 
   const resetForm = () => {
-    setForm({ 出货日期: '', 出货单号: '', 出货数量: '' })
+    setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
     setEditingId(null)
   }
 
