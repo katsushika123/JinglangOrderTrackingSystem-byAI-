@@ -95,6 +95,7 @@ export async function initDatabase(): Promise<void> {
       来料日期 TEXT DEFAULT '',
       打标 INTEGER DEFAULT 0,
       贴标 INTEGER DEFAULT 0,
+      备注 TEXT DEFAULT '',
       created_at TEXT DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL
     );
@@ -111,6 +112,7 @@ export async function initDatabase(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_orders_batch ON orders(batch_id);
     CREATE INDEX IF NOT EXISTS idx_shipments_order ON shipments(order_id);
   `)
+  try { db.exec(`ALTER TABLE orders ADD COLUMN 备注 TEXT DEFAULT ''`) } catch { /* already exists */ }
 }
 
 interface BatchRow {
@@ -136,6 +138,7 @@ interface OrderRow {
   来料日期: string
   打标: boolean
   贴标: number
+  备注: string
   shipments_total_qty: number
   shipments: ShipmentRow[]
   created_at: string
@@ -248,6 +251,7 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       来料日期: (row['来料日期'] as string) || '',
       打标: !!(row['打标'] as number),
       贴标: (row['贴标'] as number) || 0,
+      备注: (row['备注'] as string) || '',
       shipments_total_qty: (row.shipments_total_qty as number) || 0,
       shipments,
       created_at: (row.created_at as string) || ''
@@ -267,8 +271,8 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
   }
 
   dbRun(
-    `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标, 备注)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       batchId,
       order.项目号 || '',
@@ -282,7 +286,8 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
       order.送货地址 || '',
       order.来料日期 || '',
       order.打标 ? 1 : 0,
-      order.贴标 || 0
+      order.贴标 || 0,
+      order.备注 || ''
     ]
   )
 
@@ -305,6 +310,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
     来料日期: order.来料日期 || '',
     打标: order.打标 || false,
     贴标: order.贴标 || 0,
+    备注: order.备注 || '',
     shipments_total_qty: 0,
     shipments: [],
     created_at: new Date().toISOString()
@@ -328,6 +334,7 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
     '来料日期': '来料日期',
     '打标': '打标',
     '贴标': '贴标',
+    '备注': '备注',
   }
 
   for (const [key, col] of Object.entries(fieldMap)) {
@@ -419,8 +426,8 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
     for (let i = orders.length - 1; i >= 0; i--) {
       const item = orders[i]
       db.run(
-        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, weight_value, weight_unit, 送货地址, 来料日期, 打标, 贴标, 备注)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           batchId,
           item.项目号 || '',
@@ -434,7 +441,8 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
           item.送货地址 || '',
           item.来料日期 || '',
           item.打标 ? 1 : 0,
-          item.贴标 || 0
+          item.贴标 || 0,
+          item.备注 || ''
         ]
       )
     }
@@ -455,7 +463,7 @@ export function exportOrdersToExcel(batchId: string | null, filePath: string): v
   const headers = [
     '项目号', '钣金单据编码', '物料长代码', '物料名称', '数量',
     '色号', '重量/面积/体积', '送货地址', '来料日期',
-    '是否打标', '贴标数量', '已出货数量', '清单'
+    '是否打标', '贴标数量', '已出货数量', '清单', '备注'
   ]
 
   const rows = orders.map(o => [
@@ -471,7 +479,8 @@ export function exportOrdersToExcel(batchId: string | null, filePath: string): v
     o.打标 ? '是' : '否',
     o.贴标 || 0,
     o.shipments_total_qty,
-    o.batch_name
+    o.batch_name,
+    o.备注 || ''
   ])
 
   const ws = XLSX.utils.aoa_to_sheet([headers, ...rows])

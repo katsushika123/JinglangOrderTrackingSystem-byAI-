@@ -6,6 +6,7 @@ import ColumnPanel from './components/ColumnPanel'
 import OrderModal from './components/OrderModal'
 import ShipmentModal from './components/ShipmentModal'
 import BatchNameDialog from './components/BatchNameDialog'
+import NotesDialog from './components/NotesDialog'
 import { useOrders } from './hooks/useOrders'
 import { useBatches } from './hooks/useBatches'
 import { ALL_COLUMNS, DEFAULT_COL_VISIBILITY, COL_VIS_KEY } from './types'
@@ -65,6 +66,8 @@ const App: React.FC = () => {
   const [batchDefaultName, setBatchDefaultName] = useState('')
   const [pendingImportOrders, setPendingImportOrders] = useState<Partial<OrderRow>[]>([])
   const [editMode, setEditMode] = useState(false)
+  const [showNotesDialog, setShowNotesDialog] = useState(false)
+  const [notesOrder, setNotesOrder] = useState<OrderRow | null>(null)
 
   const shipmentIdRef = React.useRef<number | null>(null)
   useEffect(() => {
@@ -230,6 +233,10 @@ const App: React.FC = () => {
     await editOrder(id, { [field]: val })
   }, [editOrder])
 
+  const handleNoteSave = useCallback(async (id: number, note: string) => {
+    await editOrder(id, { 备注: note })
+  }, [editOrder])
+
   const handleExport = useCallback(async () => {
     try {
       const defaultName = batchId ? `${batchId}_导出.xlsx` : '全部订单_导出.xlsx'
@@ -294,6 +301,7 @@ const App: React.FC = () => {
         onLabelQtyChange={setLabelQty}
         onShip={handleShipment}
         onDelete={handleDeleteOrder}
+        onNote={(order) => { setNotesOrder(order); setShowNotesDialog(true) }}
         onFiltersChange={setFilters}
         editMode={editMode}
         onCellChange={handleCellChange}
@@ -328,6 +336,12 @@ const App: React.FC = () => {
           setShowBatchNameDialog(false)
           setPendingImportOrders([])
         }}
+      />
+      <NotesDialog
+        visible={showNotesDialog}
+        order={notesOrder}
+        onSave={handleNoteSave}
+        onClose={() => { setShowNotesDialog(false); setNotesOrder(null) }}
       />
     </div>
   )

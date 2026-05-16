@@ -42,6 +42,7 @@ export interface OrderRow {
   来料日期: string
   打标: boolean
   贴标: number
+  备注: string
   shipments_total_qty: number
   shipments: ShipmentRow[]
   created_at: string

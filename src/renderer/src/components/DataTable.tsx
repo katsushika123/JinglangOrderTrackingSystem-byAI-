@@ -25,6 +25,7 @@ interface DataTableProps {
   onLabelQtyChange: (id: number, qty: number) => void
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
+  onNote?: (order: OrderRow) => void
   onFiltersChange: (filters: Record<string, string>) => void
   editMode?: boolean
   onCellChange?: (id: number, field: string, value: string) => void
@@ -52,6 +53,7 @@ const DataTable: React.FC<DataTableProps> = ({
   onLabelQtyChange,
   onShip,
   onDelete,
+  onNote,
   onFiltersChange,
   editMode,
   onCellChange,
@@ -355,6 +357,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 </td>
                 <td>
                   <div className="action-btns">
+                    {onNote && <button className="btn btn-sm" onClick={() => onNote(item)}>备注</button>}
                     <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
                     <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
                   </div>
