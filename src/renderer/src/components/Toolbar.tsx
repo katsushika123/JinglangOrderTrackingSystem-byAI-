@@ -7,6 +7,7 @@ interface ToolbarProps {
   batches: Array<{ name: string; count: number }>
   shipmentNo: string
   editMode: boolean
+  showDeleted: boolean
   onAdd: () => void
   onImport: () => void
   onExport: () => void
@@ -16,6 +17,7 @@ interface ToolbarProps {
   onBatchDelete: () => void
   onShipmentNoChange: (no: string) => void
   onToggleEditMode: () => void
+  onToggleRecycleBin: () => void
   children?: React.ReactNode
 }
 
@@ -34,20 +36,26 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onShipmentNoChange,
   editMode,
   onToggleEditMode,
+  showDeleted,
+  onToggleRecycleBin,
   children,
 }) => {
   return (
     <div className="toolbar">
       <span className="title">
         <span style={{ color: '#1a73e8' }}>&#x1F4CB;</span> 订单跟踪
+        {showDeleted && <span style={{ color: '#d93025', fontSize: '0.75rem' }}> — 回收站</span>}
       </span>
-      <button className="btn primary" onClick={onAdd}>+ 新增</button>
-      <button className="btn success" onClick={onImport}>&#x1F4E4; 导入清单</button>
+      {!showDeleted && <button className="btn primary" onClick={onAdd}>+ 新增</button>}
+      {!showDeleted && <button className="btn success" onClick={onImport}>&#x1F4E4; 导入清单</button>}
       <button className="btn" onClick={onExport}>&#x1F4E5; 导出</button>
       <button className="btn" onClick={onResetFilters}>&#x1F504; 清除筛选</button>
       <button className="btn" onClick={onToggleColumnPanel}>&#x1F4CA; 列显示</button>
-      <button className={`btn ${editMode ? 'primary' : ''}`} onClick={onToggleEditMode}>
+      {!showDeleted && <button className={`btn ${editMode ? 'primary' : ''}`} onClick={onToggleEditMode}>
         &#x270F;&#xFE0F; {editMode ? '退出编辑' : '编辑模式'}
+      </button>}
+      <button className={`btn ${showDeleted ? 'danger' : ''}`} onClick={onToggleRecycleBin}>
+        &#x1F5D1; {showDeleted ? '退出回收站' : '回收站'}
       </button>
       <span className="spacer" />
       <span style={{ fontSize: '0.75rem', color: '#555' }}>出货单号：</span>
@@ -72,7 +80,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </option>
         ))}
       </select>
-      {selectedCount > 0 && (
+      {!showDeleted && selectedCount > 0 && (
         <button className="btn btn-warning btn-sm" onClick={onBatchDelete}>
           &#x1F5D1; 批量删除 ({selectedCount})
         </button>

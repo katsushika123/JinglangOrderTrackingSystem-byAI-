@@ -43,10 +43,16 @@ const App: React.FC = () => {
     setFilters,
     shipmentNo,
     setShipmentNo,
+    showDeleted,
+    setShowDeleted,
     addOrder,
     editOrder,
     removeOrder,
     removeOrders,
+    restoreOrder,
+    restoreOrders,
+    permanentDeleteOrder,
+    permanentDeleteOrders,
     toggleOrderCheck,
     setLabelQty,
     importOrdersFromExcel,
@@ -135,7 +141,7 @@ const App: React.FC = () => {
 
   const handleDeleteOrder = useCallback(
     async (id: number) => {
-      if (!confirm('确定删除该来料信息吗？')) return
+      if (!confirm('确定将该条目移入回收站吗？')) return
       await removeOrder(id)
       setSelectedIds((prev) => {
         const next = new Set(prev)
@@ -149,11 +155,22 @@ const App: React.FC = () => {
 
   const handleBatchDelete = useCallback(async () => {
     if (selectedIds.size === 0) return
-    if (!confirm(`确定删除选中的 ${selectedIds.size} 条记录吗？`)) return
+    if (!confirm(`确定将选中的 ${selectedIds.size} 条移入回收站吗？`)) return
     await removeOrders(Array.from(selectedIds))
     setSelectedIds(new Set())
     refreshBatches()
   }, [selectedIds, removeOrders, refreshBatches])
+
+  const handleRestore = useCallback(async (id: number) => {
+    await restoreOrder(id)
+    refreshBatches()
+  }, [restoreOrder, refreshBatches])
+
+  const handlePermanentDelete = useCallback(async (id: number) => {
+    if (!confirm('确定永久删除该条目吗？此操作不可撤销！')) return
+    await permanentDeleteOrder(id)
+    refreshBatches()
+  }, [permanentDeleteOrder, refreshBatches])
 
   const handleShipment = useCallback((order: OrderRow) => {
     setShipmentOrder(order)
@@ -278,6 +295,8 @@ const App: React.FC = () => {
         onShipmentNoChange={setShipmentNo}
         editMode={editMode}
         onToggleEditMode={handleToggleEditMode}
+        showDeleted={showDeleted}
+        onToggleRecycleBin={() => { setShowDeleted(!showDeleted); setEditMode(false) }}
       >
         {showColPanel && (
           <ColumnPanel
@@ -302,6 +321,9 @@ const App: React.FC = () => {
         onShip={handleShipment}
         onDelete={handleDeleteOrder}
         onNote={(order) => { setNotesOrder(order); setShowNotesDialog(true) }}
+        showDeleted={showDeleted}
+        onRestore={handleRestore}
+        onPermanentDelete={handlePermanentDelete}
         onFiltersChange={setFilters}
         editMode={editMode}
         onCellChange={handleCellChange}

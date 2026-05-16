@@ -2,12 +2,16 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 export interface ElectronAPI {
   getBatches: () => Promise<BatchRow[]>
-  getOrders: (batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string) => Promise<OrderRow[]>
+  getOrders: (batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string, showDeleted?: boolean) => Promise<OrderRow[]>
   createOrder: (order: Partial<OrderRow>) => Promise<OrderRow>
   updateOrder: (id: number, data: Partial<OrderRow>) => Promise<void>
   deleteOrder: (id: number) => Promise<void>
   deleteOrders: (ids: number[]) => Promise<void>
   toggleCheck: (id: number, field: string) => Promise<void>
+  restoreOrder: (id: number) => Promise<void>
+  restoreOrders: (ids: number[]) => Promise<void>
+  permanentDeleteOrder: (id: number) => Promise<void>
+  permanentDeleteOrders: (ids: number[]) => Promise<void>
   createShipment: (orderId: number, shipment: Partial<ShipmentRow>) => Promise<ShipmentRow>
   updateShipment: (id: number, data: Partial<ShipmentRow>) => Promise<void>
   deleteShipment: (id: number) => Promise<void>
@@ -64,12 +68,16 @@ export interface StatsRow {
 
 const api: ElectronAPI = {
   getBatches: () => ipcRenderer.invoke('db:getBatches'),
-  getOrders: (batchId, filters, shipmentNo) => ipcRenderer.invoke('db:getOrders', batchId, filters, shipmentNo),
+  getOrders: (batchId, filters, shipmentNo, showDeleted) => ipcRenderer.invoke('db:getOrders', batchId, filters, shipmentNo, showDeleted),
   createOrder: (order) => ipcRenderer.invoke('db:createOrder', order),
   updateOrder: (id, data) => ipcRenderer.invoke('db:updateOrder', id, data),
   deleteOrder: (id) => ipcRenderer.invoke('db:deleteOrder', id),
   deleteOrders: (ids) => ipcRenderer.invoke('db:deleteOrders', ids),
   toggleCheck: (id, field) => ipcRenderer.invoke('db:toggleCheck', id, field),
+  restoreOrder: (id) => ipcRenderer.invoke('db:restoreOrder', id),
+  restoreOrders: (ids) => ipcRenderer.invoke('db:restoreOrders', ids),
+  permanentDeleteOrder: (id) => ipcRenderer.invoke('db:permanentDeleteOrder', id),
+  permanentDeleteOrders: (ids) => ipcRenderer.invoke('db:permanentDeleteOrders', ids),
   createShipment: (orderId, shipment) => ipcRenderer.invoke('db:createShipment', orderId, shipment),
   updateShipment: (id, data) => ipcRenderer.invoke('db:updateShipment', id, data),
   deleteShipment: (id) => ipcRenderer.invoke('db:deleteShipment', id),

@@ -26,6 +26,9 @@ interface DataTableProps {
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
   onNote?: (order: OrderRow) => void
+  showDeleted?: boolean
+  onRestore?: (id: number) => void
+  onPermanentDelete?: (id: number) => void
   onFiltersChange: (filters: Record<string, string>) => void
   editMode?: boolean
   onCellChange?: (id: number, field: string, value: string) => void
@@ -54,6 +57,9 @@ const DataTable: React.FC<DataTableProps> = ({
   onShip,
   onDelete,
   onNote,
+  showDeleted,
+  onRestore,
+  onPermanentDelete,
   onFiltersChange,
   editMode,
   onCellChange,
@@ -192,13 +198,17 @@ const DataTable: React.FC<DataTableProps> = ({
         <input
           type="checkbox"
           checked={!!item.打标}
-          onChange={() => onToggleCheck(item.id, col.key)}
+          disabled={showDeleted}
+          onChange={() => !showDeleted && onToggleCheck(item.id, col.key)}
         />
       )
     }
     if (col.key === '贴标') {
       const labelQty = item.贴标 || 0
       const labelPct = item.数量 > 0 ? Math.min(Math.round((labelQty / item.数量) * 1000) / 10, 100) : 0
+      if (showDeleted) {
+        return <span style={{ fontSize: '0.65rem', color: '#888' }}>{labelQty} / {item.数量}</span>
+      }
       const editVal = labelEdits[item.id] ?? String(labelQty)
       const handleBlur = () => {
         const v = parseFloat(editVal)
@@ -355,13 +365,22 @@ const DataTable: React.FC<DataTableProps> = ({
                     {item.shipments_total_qty || 0}/{item.数量} ({pct}%)
                   </div>
                 </td>
-                <td>
-                  <div className="action-btns">
-                    {onNote && <button className="btn btn-sm" onClick={() => onNote(item)}>备注</button>}
-                    <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
-                    <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
-                  </div>
-                </td>
+                  <td>
+                    <div className="action-btns">
+                      {showDeleted ? (
+                        <>
+                          <button className="btn btn-sm success" onClick={() => onRestore?.(item.id)}>恢复</button>
+                          <button className="btn btn-sm danger" onClick={() => onPermanentDelete?.(item.id)}>永久删除</button>
+                        </>
+                      ) : (
+                        <>
+                          {onNote && <button className="btn btn-sm" onClick={() => onNote(item)}>备注</button>}
+                          <button className="btn btn-sm success" onClick={() => onShip(item)}>出货</button>
+                          <button className="btn btn-sm danger" onClick={() => onDelete(item.id)}>删除</button>
+                        </>
+                      )}
+                    </div>
+                  </td>
               </tr>
             )
           })}

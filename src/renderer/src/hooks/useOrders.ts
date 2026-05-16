@@ -8,15 +8,21 @@ export interface UseOrdersReturn {
   loading: boolean
   batchId: string | null
   filters: Record<string, string>
-  shipmentNo: string
-  setBatchId: (id: string | null) => void
-  setFilters: (filters: Record<string, string>) => void
-  setShipmentNo: (no: string) => void
+    shipmentNo: string
+    showDeleted: boolean
+    setBatchId: (id: string | null) => void
+    setFilters: (filters: Record<string, string>) => void
+    setShipmentNo: (no: string) => void
+    setShowDeleted: (v: boolean) => void
   refresh: () => Promise<void>
   addOrder: (order: Partial<OrderRow> & { batch_name?: string }) => Promise<OrderRow>
   editOrder: (id: number, data: Partial<OrderRow>) => Promise<void>
   removeOrder: (id: number) => Promise<void>
   removeOrders: (ids: number[]) => Promise<void>
+  restoreOrder: (id: number) => Promise<void>
+  restoreOrders: (ids: number[]) => Promise<void>
+  permanentDeleteOrder: (id: number) => Promise<void>
+  permanentDeleteOrders: (ids: number[]) => Promise<void>
   toggleOrderCheck: (id: number, field: string) => Promise<void>
   setLabelQty: (id: number, qty: number) => Promise<void>
   importOrdersFromExcel: (orders: Partial<OrderRow>[], batchName: string) => Promise<number>
@@ -29,13 +35,14 @@ export function useOrders(): UseOrdersReturn {
   const [batchId, setBatchId] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [shipmentNo, setShipmentNo] = useState('')
+  const [showDeleted, setShowDeleted] = useState(false)
   const mountedRef = useRef(true)
 
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const [data, s] = await Promise.all([
-        ipc.getOrders(batchId, filters, shipmentNo),
+        ipc.getOrders(batchId, filters, shipmentNo, showDeleted),
         ipc.getStats(batchId)
       ])
       if (mountedRef.current) {
@@ -47,7 +54,7 @@ export function useOrders(): UseOrdersReturn {
     } finally {
       if (mountedRef.current) setLoading(false)
     }
-  }, [batchId, filters, shipmentNo])
+  }, [batchId, filters, shipmentNo, showDeleted])
 
   useEffect(() => {
     mountedRef.current = true
@@ -79,6 +86,26 @@ export function useOrders(): UseOrdersReturn {
     await fetchData()
   }, [fetchData])
 
+  const restoreOrderFn = useCallback(async (id: number) => {
+    await ipc.restoreOrder(id)
+    await fetchData()
+  }, [fetchData])
+
+  const restoreOrdersFn = useCallback(async (ids: number[]) => {
+    await ipc.restoreOrders(ids)
+    await fetchData()
+  }, [fetchData])
+
+  const permanentDeleteOrderFn = useCallback(async (id: number) => {
+    await ipc.permanentDeleteOrder(id)
+    await fetchData()
+  }, [fetchData])
+
+  const permanentDeleteOrdersFn = useCallback(async (ids: number[]) => {
+    await ipc.permanentDeleteOrders(ids)
+    await fetchData()
+  }, [fetchData])
+
   const toggleOrderCheck = useCallback(async (id: number, field: string) => {
     await ipc.toggleCheck(id, field)
     await fetchData()
@@ -102,14 +129,20 @@ export function useOrders(): UseOrdersReturn {
     batchId,
     filters,
     shipmentNo,
+    showDeleted,
     setBatchId,
     setFilters,
     setShipmentNo,
+    setShowDeleted,
     refresh: fetchData,
     addOrder,
     editOrder,
     removeOrder,
     removeOrders,
+    restoreOrder: restoreOrderFn,
+    restoreOrders: restoreOrdersFn,
+    permanentDeleteOrder: permanentDeleteOrderFn,
+    permanentDeleteOrders: permanentDeleteOrdersFn,
     toggleOrderCheck,
     setLabelQty,
     importOrdersFromExcel,

@@ -13,6 +13,10 @@ import {
   updateShipment,
   deleteShipment,
   toggleOrderCheck,
+  restoreOrder,
+  restoreOrders,
+  permanentDeleteOrder,
+  permanentDeleteOrders,
   importOrdersToBatch,
   exportOrdersToExcel,
   getStats,
@@ -72,8 +76,8 @@ function registerIpcHandlers(): void {
   })
 
   // Orders
-  ipcMain.handle('db:getOrders', async (_event, batchId?: string, filters?: Record<string, string>, shipmentNo?: string) => {
-    return getOrders(batchId || null, filters || {}, shipmentNo || '')
+  ipcMain.handle('db:getOrders', async (_event, batchId?: string, filters?: Record<string, string>, shipmentNo?: string, showDeleted?: boolean) => {
+    return getOrders(batchId || null, filters || {}, shipmentNo || '', showDeleted || false)
   })
 
   ipcMain.handle('db:createOrder', async (_event, order) => {
@@ -94,6 +98,23 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('db:toggleCheck', async (_event, id: number, field: string) => {
     return toggleOrderCheck(id, field)
+  })
+
+  // Recycle Bin
+  ipcMain.handle('db:restoreOrder', async (_event, id: number) => {
+    return restoreOrder(id)
+  })
+
+  ipcMain.handle('db:restoreOrders', async (_event, ids: number[]) => {
+    return restoreOrders(ids)
+  })
+
+  ipcMain.handle('db:permanentDeleteOrder', async (_event, id: number) => {
+    return permanentDeleteOrder(id)
+  })
+
+  ipcMain.handle('db:permanentDeleteOrders', async (_event, ids: number[]) => {
+    return permanentDeleteOrders(ids)
   })
 
   // Shipments

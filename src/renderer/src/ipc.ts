@@ -6,8 +6,8 @@ export async function getBatches(): Promise<BatchRow[]> {
   return api.getBatches()
 }
 
-export async function getOrders(batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string): Promise<OrderRow[]> {
-  return api.getOrders(batchId ?? null, filters ?? {}, shipmentNo ?? '')
+export async function getOrders(batchId?: string | null, filters?: Record<string, string>, shipmentNo?: string, showDeleted?: boolean): Promise<OrderRow[]> {
+  return api.getOrders(batchId ?? null, filters ?? {}, shipmentNo ?? '', showDeleted ?? false)
 }
 
 export async function createOrder(order: Partial<OrderRow> & { batch_name?: string }): Promise<OrderRow> {
@@ -24,6 +24,22 @@ export async function deleteOrder(id: number): Promise<void> {
 
 export async function deleteOrders(ids: number[]): Promise<void> {
   return api.deleteOrders(ids)
+}
+
+export async function restoreOrder(id: number): Promise<void> {
+  return api.restoreOrder(id)
+}
+
+export async function restoreOrders(ids: number[]): Promise<void> {
+  return api.restoreOrders(ids)
+}
+
+export async function permanentDeleteOrder(id: number): Promise<void> {
+  return api.permanentDeleteOrder(id)
+}
+
+export async function permanentDeleteOrders(ids: number[]): Promise<void> {
+  return api.permanentDeleteOrders(ids)
 }
 
 export async function toggleCheck(id: number, field: string): Promise<void> {

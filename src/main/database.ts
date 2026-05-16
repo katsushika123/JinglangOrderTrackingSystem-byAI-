@@ -96,6 +96,7 @@ export async function initDatabase(): Promise<void> {
       打标 INTEGER DEFAULT 0,
       贴标 INTEGER DEFAULT 0,
       备注 TEXT DEFAULT '',
+      deleted INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now','localtime')),
       FOREIGN KEY (batch_id) REFERENCES batches(id) ON DELETE SET NULL
     );
@@ -113,6 +114,7 @@ export async function initDatabase(): Promise<void> {
     CREATE INDEX IF NOT EXISTS idx_shipments_order ON shipments(order_id);
   `)
   try { db.exec(`ALTER TABLE orders ADD COLUMN 备注 TEXT DEFAULT ''`) } catch { /* already exists */ }
+  try { db.exec(`ALTER TABLE orders ADD COLUMN deleted INTEGER DEFAULT 0`) } catch { /* already exists */ }
 }
 
 interface BatchRow {
@@ -162,7 +164,7 @@ export function getBatchList(): BatchRow[] {
   const rows = dbAll(`
     SELECT b.id, b.name, COUNT(o.id) AS count, b.created_at
     FROM batches b
-    LEFT JOIN orders o ON o.batch_id = b.id
+    LEFT JOIN orders o ON o.batch_id = b.id AND o.deleted = 0
     GROUP BY b.id
     ORDER BY b.id DESC
   `)
@@ -180,13 +182,13 @@ export function createBatch(name: string): BatchRow {
   return rows[0] as unknown as BatchRow
 }
 
-export function getOrders(batchId: string | null, filters: Record<string, string>, shipmentNo = ''): OrderRow[] {
+export function getOrders(batchId: string | null, filters: Record<string, string>, shipmentNo = '', showDeleted = false): OrderRow[] {
   let sql = `
     SELECT o.*, b.name AS batch_name,
       COALESCE((SELECT SUM(出货数量) FROM shipments WHERE order_id = o.id), 0) AS shipments_total_qty
     FROM orders o
     LEFT JOIN batches b ON o.batch_id = b.id
-    WHERE 1=1
+    WHERE o.deleted = ${showDeleted ? 1 : 0}
   `
   const params: (string | number)[] = []
 
@@ -356,10 +358,28 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
 }
 
 export function deleteOrder(id: number): void {
-  dbRun(`DELETE FROM orders WHERE id = ?`, [id])
+  dbRun(`UPDATE orders SET deleted = 1 WHERE id = ?`, [id])
 }
 
 export function deleteOrders(ids: number[]): void {
+  const placeholders = ids.map(() => '?').join(',')
+  dbRun(`UPDATE orders SET deleted = 1 WHERE id IN (${placeholders})`, ids)
+}
+
+export function restoreOrder(id: number): void {
+  dbRun(`UPDATE orders SET deleted = 0 WHERE id = ?`, [id])
+}
+
+export function restoreOrders(ids: number[]): void {
+  const placeholders = ids.map(() => '?').join(',')
+  dbRun(`UPDATE orders SET deleted = 0 WHERE id IN (${placeholders})`, ids)
+}
+
+export function permanentDeleteOrder(id: number): void {
+  dbRun(`DELETE FROM orders WHERE id = ?`, [id])
+}
+
+export function permanentDeleteOrders(ids: number[]): void {
   const placeholders = ids.map(() => '?').join(',')
   dbRun(`DELETE FROM orders WHERE id IN (${placeholders})`, ids)
 }
@@ -597,6 +617,7 @@ export function getStats(batchId: string | null): StatsRow {
       COALESCE(SUM(o.数量), 0) AS total_incoming,
       COALESCE(SUM((SELECT SUM(出货数量) FROM shipments WHERE order_id = o.id)), 0) AS total_shipped
     FROM orders o
+    WHERE o.deleted = 0
   `
   const params: (string | number)[] = []
 
