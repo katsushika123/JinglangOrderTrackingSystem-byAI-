@@ -204,6 +204,7 @@ const App: React.FC = () => {
         setPendingImportOrders([])
         setBatchId(name)
         refreshBatches()
+        setEditMode(false)
         alert(`成功导入 ${count} 条记录到清单【${name}】，来料日期：${date}`)
       } catch (err: any) {
         alert('导入失败: ' + (err.message || '未知错误'))
@@ -265,7 +266,7 @@ const App: React.FC = () => {
         onExport={handleExport}
         onResetFilters={handleResetFilters}
         onToggleColumnPanel={() => setShowColPanel(!showColPanel)}
-        onBatchChange={(name) => setBatchId(name === '__ALL__' ? null : name)}
+        onBatchChange={(name) => { setBatchId(name === '__ALL__' ? null : name); setEditMode(false) }}
         onBatchDelete={handleBatchDelete}
         onShipmentNoChange={setShipmentNo}
         editMode={editMode}
