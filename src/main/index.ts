@@ -25,6 +25,7 @@ import {
 } from './database'
 
 let mainWindow: BrowserWindow | null = null
+let dbReady = false
 
 function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -51,10 +52,12 @@ function createWindow(): void {
   })
 }
 
-app.whenReady().then(() => {
-  initDatabase()
-  registerIpcHandlers()
+app.whenReady().then(async () => {
   createWindow()
+  registerIpcHandlers()
+  await initDatabase()
+  dbReady = true
+  mainWindow?.webContents.send('db-ready')
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

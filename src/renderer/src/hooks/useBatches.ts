@@ -4,6 +4,11 @@ import * as ipc from '../ipc'
 
 export function useBatches() {
   const [batches, setBatches] = useState<BatchRow[]>([])
+  const [dbReady, setDbReady] = useState(false)
+
+  useEffect(() => {
+    (window as any).electronAPI?.onDbReady(() => setDbReady(true))
+  }, [])
 
   const fetchBatches = useCallback(async () => {
     try {
@@ -15,8 +20,8 @@ export function useBatches() {
   }, [])
 
   useEffect(() => {
-    fetchBatches()
-  }, [fetchBatches])
+    if (dbReady) fetchBatches()
+  }, [fetchBatches, dbReady])
 
   return { batches, refreshBatches: fetchBatches }
 }

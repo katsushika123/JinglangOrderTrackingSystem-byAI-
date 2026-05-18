@@ -31,12 +31,17 @@ export interface UseOrdersReturn {
 export function useOrders(): UseOrdersReturn {
   const [orders, setOrders] = useState<OrderRow[]>([])
   const [stats, setStats] = useState<StatsRow>({ total_count: 0, total_incoming: 0, total_shipped: 0 })
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [batchId, setBatchId] = useState<string | null>(null)
   const [filters, setFilters] = useState<Record<string, string>>({})
   const [shipmentNo, setShipmentNo] = useState('')
   const [showDeleted, setShowDeleted] = useState(false)
+  const [dbReady, setDbReady] = useState(false)
   const mountedRef = useRef(true)
+
+  useEffect(() => {
+    window.electronAPI?.onDbReady(() => setDbReady(true))
+  }, [])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -62,8 +67,8 @@ export function useOrders(): UseOrdersReturn {
   }, [])
 
   useEffect(() => {
-    fetchData()
-  }, [fetchData])
+    if (dbReady) fetchData()
+  }, [fetchData, dbReady])
 
   const addOrder = useCallback(async (order: Partial<OrderRow> & { batch_name?: string }): Promise<OrderRow> => {
     const created = await ipc.createOrder(order)
