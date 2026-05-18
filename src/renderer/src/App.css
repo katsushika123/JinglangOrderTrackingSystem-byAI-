@@ -477,16 +477,18 @@ table.excel-table tbody tr:hover td {
   position: absolute;
   top: 0;
   right: -3px;
-  width: 6px;
+  width: 8px;
   height: 100%;
   cursor: col-resize;
   z-index: 5;
   user-select: none;
+  border-right: 1px solid transparent;
+  transition: border-color 0.15s;
 }
 
 .col-resize-handle:hover {
-  background: #1a73e8;
-  opacity: 0.3;
+  border-right: 1px solid #1a73e8;
+  background: rgba(26, 115, 232, 0.08);
 }
 
 .edit-cell-input {
@@ -496,4 +498,10 @@ table.excel-table tbody tr:hover td {
 
 table.excel-table tbody tr:hover td .edit-cell-input {
   background: #fffde7 !important;
+}
+
+.editable-cell {
+  border: 1px dashed #1a73e8 !important;
+  background: #f8fbff !important;
+  cursor: text;
 }

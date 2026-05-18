@@ -96,8 +96,8 @@ function registerIpcHandlers(): void {
     return deleteOrders(ids)
   })
 
-  ipcMain.handle('db:toggleCheck', async (_event, id: number, field: string) => {
-    return toggleOrderCheck(id, field)
+  ipcMain.handle('db:toggleCheck', async (_event, id: number) => {
+    return toggleOrderCheck(id)
   })
 
   // Recycle Bin

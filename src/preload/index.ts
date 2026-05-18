@@ -7,7 +7,7 @@ export interface ElectronAPI {
   updateOrder: (id: number, data: Partial<OrderRow>) => Promise<void>
   deleteOrder: (id: number) => Promise<void>
   deleteOrders: (ids: number[]) => Promise<void>
-  toggleCheck: (id: number, field: string) => Promise<void>
+  toggleCheck: (id: number) => Promise<void>
   restoreOrder: (id: number) => Promise<void>
   restoreOrders: (ids: number[]) => Promise<void>
   permanentDeleteOrder: (id: number) => Promise<void>
@@ -73,7 +73,7 @@ const api: ElectronAPI = {
   updateOrder: (id, data) => ipcRenderer.invoke('db:updateOrder', id, data),
   deleteOrder: (id) => ipcRenderer.invoke('db:deleteOrder', id),
   deleteOrders: (ids) => ipcRenderer.invoke('db:deleteOrders', ids),
-  toggleCheck: (id, field) => ipcRenderer.invoke('db:toggleCheck', id, field),
+  toggleCheck: (id) => ipcRenderer.invoke('db:toggleCheck', id),
   restoreOrder: (id) => ipcRenderer.invoke('db:restoreOrder', id),
   restoreOrders: (ids) => ipcRenderer.invoke('db:restoreOrders', ids),
   permanentDeleteOrder: (id) => ipcRenderer.invoke('db:permanentDeleteOrder', id),

@@ -19,9 +19,10 @@ interface DataTableProps {
   columns: ColumnDef[]
   visibleColumns: string[]
   selectedIds: Set<number>
+  loading?: boolean
   onSelectOne: (id: number, checked: boolean) => void
   onSelectAll: (checked: boolean) => void
-  onToggleCheck: (id: number, field: string) => void
+  onToggleCheck: (id: number) => void
   onLabelQtyChange: (id: number, qty: number) => void
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
@@ -29,9 +30,23 @@ interface DataTableProps {
   showDeleted?: boolean
   onRestore?: (id: number) => void
   onPermanentDelete?: (id: number) => void
+  filterResetCounter?: number
   onFiltersChange: (filters: Record<string, string>) => void
   editMode?: boolean
   onCellChange?: (id: number, field: string, value: string) => void
+}
+
+type OrderFieldKey = keyof Pick<OrderRow, '项目号' | '钣金单据编码' | '物料长代码' | '物料名称' | '色号' | '数量' | 'weight_value' | 'weight_unit' | '送货地址' | '来料日期' | '打标' | '贴标' | '备注'>
+
+function getOrderField(item: OrderRow, key: string): string {
+  const fieldKeys = new Set<string>(['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '送货地址', '来料日期', '备注'])
+  if (fieldKeys.has(key)) return ((item as unknown) as Record<string, unknown>)[key] as string ?? ''
+  if (key === '数量') return String(item.数量 || '')
+  if (key === 'weight_value') return String(item.weight_value || '')
+  if (key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
+  if (key === '打标') return item.打标 ? '是' : '否'
+  if (key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
+  return ''
 }
 
 function getProgress(item: OrderRow): number {
@@ -63,6 +78,8 @@ const DataTable: React.FC<DataTableProps> = ({
   onFiltersChange,
   editMode,
   onCellChange,
+  loading,
+  filterResetCounter,
 }) => {
   const [localFilters, setLocalFilters] = useState<Record<string, string>>({})
   const [labelEdits, setLabelEdits] = useState<Record<number, string>>({})
@@ -90,16 +107,6 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   }, [])
 
-  const handleResizeStart = useCallback((colKey: string, e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const th = (e.currentTarget as HTMLElement).parentElement
-    const startW = th?.offsetWidth ?? 100
-    resizeRef.current = { key: colKey, startX: e.clientX, startW }
-    document.addEventListener('mousemove', handleResizeMove)
-    document.addEventListener('mouseup', handleResizeEnd)
-  }, [])
-
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!resizeRef.current) return
     const { key, startX, startW } = resizeRef.current
@@ -107,22 +114,28 @@ const DataTable: React.FC<DataTableProps> = ({
     setResizedWidths(prev => ({ ...prev, [key]: newWidth }))
   }, [])
 
+  const handleResizeMoveRef = useRef(handleResizeMove)
+  handleResizeMoveRef.current = handleResizeMove
+
   const handleResizeEnd = useCallback(() => {
     resizeRef.current = null
-    document.removeEventListener('mousemove', handleResizeMove)
+    document.removeEventListener('mousemove', handleResizeMoveRef.current)
     document.removeEventListener('mouseup', handleResizeEnd)
     setResizedWidths(prev => {
       saveColumnWidths(prev)
       return prev
     })
-  }, [handleResizeMove])
+  }, [])
 
-  const allSelected = orders.length > 0 && orders.every((o) => selectedIds.has(o.id))
-
-  const getColWidth = (key: string): string | undefined => {
-    if (resizedWidths[key]) return `${resizedWidths[key]}px`
-    return columnWidths[key] || undefined
-  }
+  const handleResizeStart = useCallback((colKey: string, e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const th = (e.currentTarget as HTMLElement).parentElement
+    const startW = th?.offsetWidth ?? 100
+    resizeRef.current = { key: colKey, startX: e.clientX, startW }
+    document.addEventListener('mousemove', handleResizeMoveRef.current)
+    document.addEventListener('mouseup', handleResizeEnd)
+  }, [handleResizeEnd])
 
   const columnWidths: Record<string, string> = {
     '数量': '56px',
@@ -130,6 +143,17 @@ const DataTable: React.FC<DataTableProps> = ({
     '来料日期': '80px',
     '送货地址': 'auto',
   }
+
+  const getColWidth = (key: string): string | undefined => {
+    if (resizedWidths[key]) return `${resizedWidths[key]}px`
+    return columnWidths[key] || undefined
+  }
+
+  useEffect(() => {
+    if (filterResetCounter) setLocalFilters({})
+  }, [filterResetCounter])
+
+  const allSelected = orders.length > 0 && orders.every((o) => selectedIds.has(o.id))
 
   const EDITABLE_COLUMNS: Record<string, 'text' | 'number' | 'date'> = {
     '项目号': 'text',
@@ -167,15 +191,14 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const getCellValue = (item: OrderRow, colKey: string): string => {
     if (colKey === '数量') return String(item.数量 || '')
-    if (colKey === 'weight_value') return String(item.weight_value || '')
-    return String((item as any)[colKey] ?? '')
+    return getOrderField(item, colKey)
   }
 
   const getCellText = (item: OrderRow, col: ColumnDef): string => {
     if (col.key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
     if (col.key === '打标') return item.打标 ? '是' : '否'
     if (col.key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
-    return String((item as any)[col.key] ?? '')
+    return getOrderField(item, col.key)
   }
 
   const EDIT_INPUT_STYLE: React.CSSProperties = {
@@ -199,7 +222,7 @@ const DataTable: React.FC<DataTableProps> = ({
           type="checkbox"
           checked={!!item.打标}
           disabled={showDeleted}
-          onChange={() => !showDeleted && onToggleCheck(item.id, col.key)}
+          onChange={() => !showDeleted && onToggleCheck(item.id)}
         />
       )
     }
@@ -298,7 +321,7 @@ const DataTable: React.FC<DataTableProps> = ({
         />
       )
     }
-    return (item as any)[col.key] ?? ''
+    return getOrderField(item, col.key)
   }
 
   return (
@@ -352,7 +375,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 {visibleColumns.map((key) => {
                   const col = columns.find((c) => c.key === key)
                   if (!col) return null
-                  return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined} title={getCellText(item, col)}>{renderCell(item, col)}</td>
+                   return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined} className={editMode && EDITABLE_COLUMNS[col.key] ? 'editable-cell' : ''} title={getCellText(item, col)}>{renderCell(item, col)}</td>
                 })}
                 <td className="progress-cell">
                   <div className="progress-bar-wrap">
@@ -384,13 +407,11 @@ const DataTable: React.FC<DataTableProps> = ({
               </tr>
             )
           })}
-          {orders.length === 0 && (
-            <tr>
-              <td colSpan={visibleColumns.length + 4} className="empty-row">
-                &#x1F4ED; 暂无数据，请添加或导入清单
-              </td>
-            </tr>
-          )}
+          {orders.length === 0 && (() => {
+            if (Object.values(localFilters).some(v => v) || loading) return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F50E; 没有匹配的结果，请尝试调整筛选条件</td></tr>)
+            if (showDeleted) return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F5D1; 回收站为空</td></tr>)
+            return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F4ED; 暂无数据，请添加或导入清单</td></tr>)
+          })()}
         </tbody>
       </table>
     </div>

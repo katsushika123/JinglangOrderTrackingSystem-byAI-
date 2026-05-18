@@ -40,11 +40,13 @@ const App: React.FC = () => {
     stats,
     batchId,
     setBatchId,
+    filters,
     setFilters,
     shipmentNo,
     setShipmentNo,
     showDeleted,
     setShowDeleted,
+    loading,
     addOrder,
     editOrder,
     removeOrder,
@@ -72,6 +74,7 @@ const App: React.FC = () => {
   const [batchDefaultName, setBatchDefaultName] = useState('')
   const [pendingImportOrders, setPendingImportOrders] = useState<Partial<OrderRow>[]>([])
   const [editMode, setEditMode] = useState(false)
+  const [filterResetCounter, setFilterResetCounter] = useState(0)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [notesOrder, setNotesOrder] = useState<OrderRow | null>(null)
 
@@ -183,17 +186,27 @@ const App: React.FC = () => {
   }, [refresh, refreshBatches])
 
   const handleToggleCheck = useCallback(
-    async (id: number, field: string) => {
-      await toggleOrderCheck(id, field)
+    async (id: number) => {
+      await toggleOrderCheck(id)
     },
     [toggleOrderCheck]
   )
 
   const handleResetFilters = useCallback(() => {
+    if (batchId || Object.values(filters).some(v => v) || shipmentNo) {
+      if (!confirm('确定清除当前所有筛选条件？')) return
+    }
     setBatchId(null)
     setFilters({})
     setShipmentNo('')
-  }, [setBatchId, setFilters, setShipmentNo])
+    setFilterResetCounter(prev => prev + 1)
+  }, [setBatchId, setFilters, setShipmentNo, batchId, filters, shipmentNo])
+
+  const handleBatchChange = (name: string) => {
+    setBatchId(name === '__ALL__' ? null : name)
+    setFilterResetCounter(prev => prev + 1)
+    setEditMode(false)
+  }
 
   const handleImport = useCallback(async () => {
     const filePath = await ipc.openExcelDialog()
@@ -290,7 +303,7 @@ const App: React.FC = () => {
         onExport={handleExport}
         onResetFilters={handleResetFilters}
         onToggleColumnPanel={() => setShowColPanel(!showColPanel)}
-        onBatchChange={(name) => { setBatchId(name === '__ALL__' ? null : name); setEditMode(false) }}
+        onBatchChange={handleBatchChange}
         onBatchDelete={handleBatchDelete}
         onShipmentNoChange={setShipmentNo}
         editMode={editMode}
@@ -327,6 +340,8 @@ const App: React.FC = () => {
         onFiltersChange={setFilters}
         editMode={editMode}
         onCellChange={handleCellChange}
+        loading={loading}
+        filterResetCounter={filterResetCounter}
       />
 
       <OrderModal

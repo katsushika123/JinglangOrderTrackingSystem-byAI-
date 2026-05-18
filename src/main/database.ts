@@ -264,6 +264,9 @@ export function getOrders(batchId: string | null, filters: Record<string, string
 }
 
 export function createOrder(order: Partial<OrderRow> & { batch_name?: string }): OrderRow {
+  if (!order.物料名称 || !order.物料名称.trim()) throw new Error('物料名称不能为空')
+  if ((order.数量 ?? 0) <= 0) throw new Error('数量必须大于0')
+  if ((order.贴标 ?? 0) > (order.数量 ?? 0)) throw new Error('贴标数量不能超过总数')
   let batchId: number | null = null
   let batchName = ''
   if (order.batch_name) {
@@ -340,12 +343,18 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
   }
 
   for (const [key, col] of Object.entries(fieldMap)) {
-    if (key in data) {
-      fields.push(`"${col}" = ?`)
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
       const val = (data as any)[key]
       if (key === '打标') {
+        fields.push(`"${col}" = ?`)
         values.push(val ? 1 : 0)
+      } else if (key === '数量' && typeof val === 'number' && val <= 0) {
+        throw new Error('数量必须大于0')
+      } else if (key === '贴标' && typeof val === 'number') {
+        fields.push(`"${col}" = ?`)
+        values.push(val)
       } else {
+        fields.push(`"${col}" = ?`)
         values.push(val ?? '')
       }
     }
@@ -384,8 +393,7 @@ export function permanentDeleteOrders(ids: number[]): void {
   dbRun(`DELETE FROM orders WHERE id IN (${placeholders})`, ids)
 }
 
-export function toggleOrderCheck(id: number, field: string): void {
-  if (field !== '打标') return
+export function toggleOrderCheck(id: number): void {
   dbRun(`UPDATE orders SET "打标" = CASE WHEN "打标" = 1 THEN 0 ELSE 1 END WHERE id = ?`, [id])
 }
 
@@ -538,8 +546,30 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   if (jsonData.length < 2) return []
 
-  const headers = (jsonData[1] as unknown[]).map(h => String(h || '').trim())
-  const rows = jsonData.slice(2) as unknown[][]
+  const countMatchingHeaders = (row: unknown[]): number => {
+    if (!row) return 0
+    let cnt = 0
+    for (const h of row) {
+      const hn = String(h || '').trim().normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+      for (const aliases of Object.values(fieldMapping)) {
+        for (const a of aliases) {
+          const an = a.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+          if (hn === an || hn.includes(an) || an.includes(hn)) { cnt++; break }
+        }
+        break // count once per header
+      }
+    }
+    return cnt
+  }
+
+  const row0 = jsonData[0] as unknown[]
+  const row1 = jsonData[1] as unknown[]
+  const score0 = countMatchingHeaders(row0)
+  const score1 = countMatchingHeaders(row1)
+  const headerRow = score0 >= score1 ? row0 : row1
+  const headers = headerRow.map(h => String(h || '').trim())
+  const dataStartIdx = score0 >= score1 ? 1 : 2
+  const rows = jsonData.slice(dataStartIdx) as unknown[][]
 
   const fieldMapping: Record<string, string[]> = {
     '项目号': ['项目号'],
@@ -574,6 +604,15 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     if (/总重|重量|平方|立方/i.test(h)) weightColIdx = idx
   })
 
+  const safeVal = (key: string, row: unknown[]): string => {
+    const idx = colMap[key]
+    return idx !== undefined && idx >= 0 ? String(row[idx] || '').trim() : ''
+  }
+  const safeNum = (key: string, row: unknown[]): number => {
+    const idx = colMap[key]
+    return idx !== undefined && idx >= 0 ? (parseFloat(String(row[idx])) || 0) : 0
+  }
+
   const parsedItems: Partial<OrderRow>[] = []
 
   for (const row of rows) {
@@ -582,13 +621,13 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     if (firstCell === '' || firstCell === '收货方：' || firstCell.startsWith('制单')) continue
 
     const item: Partial<OrderRow> = {
-      项目号: String(row[colMap['项目号']] || '').trim(),
-      钣金单据编码: String(row[colMap['钣金单据编码']] || '').trim(),
-      物料长代码: String(row[colMap['物料长代码']] || '').trim(),
-      物料名称: String(row[colMap['物料名称']] || '').trim(),
-      数量: parseFloat(String(row[colMap['数量']])) || 0,
-       色号: String(row[colMap['色号']] || '').trim(),
-       送货地址: String(row[colMap['送货地址']] || '').trim(),
+      项目号: safeVal('项目号', row),
+      钣金单据编码: safeVal('钣金单据编码', row),
+      物料长代码: safeVal('物料长代码', row),
+      物料名称: safeVal('物料名称', row),
+      数量: safeNum('数量', row),
+       色号: safeVal('色号', row),
+       送货地址: safeVal('送货地址', row),
       来料日期: new Date().toISOString().slice(0, 10),
       打标: false,
       贴标: 0,
@@ -624,7 +663,7 @@ export function getStats(batchId: string | null): StatsRow {
   if (batchId) {
     const batchRows = dbAll(`SELECT id FROM batches WHERE name = ?`, [batchId])
     if (batchRows.length > 0) {
-      sql += ` WHERE o.batch_id = ?`
+      sql += ` AND o.batch_id = ?`
       params.push(batchRows[0].id as number)
     }
   }

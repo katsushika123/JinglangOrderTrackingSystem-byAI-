@@ -9,7 +9,8 @@ files:
 win:
   target:
     - nsis
-  icon: null
+asar: false
+npmRebuild: false
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
