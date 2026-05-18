@@ -21,6 +21,8 @@ export interface ElectronAPI {
   openExcelDialog: () => Promise<string | null>
   saveExcelDialog: (defaultName: string) => Promise<string | null>
   parseExcel: (filePath: string) => Promise<Partial<OrderRow>[]>
+  onDbReady: (callback: () => void) => void
+  onDbError: (callback: (msg: string) => void) => void
 }
 
 export interface BatchRow {
@@ -66,6 +68,11 @@ export interface StatsRow {
   total_shipped: number
 }
 
+let dbReadyFlag = false
+let dbErrorFlag: string | null = null
+ipcRenderer.on('db-ready', () => { dbReadyFlag = true })
+ipcRenderer.on('db-error', (_e, msg) => { dbErrorFlag = String(msg) })
+
 const api: ElectronAPI = {
   getBatches: () => ipcRenderer.invoke('db:getBatches'),
   getOrders: (batchId, filters, shipmentNo, showDeleted) => ipcRenderer.invoke('db:getOrders', batchId, filters, shipmentNo, showDeleted),
@@ -87,16 +94,14 @@ const api: ElectronAPI = {
   openExcelDialog: () => ipcRenderer.invoke('dialog:openExcel'),
   saveExcelDialog: (defaultName) => ipcRenderer.invoke('dialog:saveExcel', defaultName),
   parseExcel: (filePath) => ipcRenderer.invoke('excel:parse', filePath),
+  onDbReady: (callback) => {
+    if (dbReadyFlag) callback()
+    else ipcRenderer.once('db-ready', () => callback())
+  },
+  onDbError: (callback) => {
+    if (dbErrorFlag) callback(dbErrorFlag)
+    else ipcRenderer.once('db-error', (_e, msg) => callback(msg))
+  },
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)
-
-let dbReadyFlag = false
-let dbErrorFlag: string | null = null
-ipcRenderer.on('db-ready', () => { dbReadyFlag = true })
-ipcRenderer.on('db-error', (_e, msg) => { dbErrorFlag = String(msg) })
-
-Object.assign(api, {
-  onDbReady: (callback: () => void) => { if (dbReadyFlag) callback(); else ipcRenderer.once('db-ready', () => callback()) },
-  onDbError: (callback: (msg: string) => void) => { if (dbErrorFlag) callback(dbErrorFlag); else ipcRenderer.once('db-error', (_e, msg) => callback(msg)) }
-})
