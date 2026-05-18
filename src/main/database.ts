@@ -643,6 +643,8 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     }
 
     if (!item.物料名称 && item.数量 === 0) continue
+    const emptyCount = [item.项目号, item.钣金单据编码, item.物料长代码, item.色号].filter(v => !v || !v.trim()).length
+    if (emptyCount >= 3) continue
     parsedItems.push(item)
   }
 
