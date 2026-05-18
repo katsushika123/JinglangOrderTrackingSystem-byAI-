@@ -175,6 +175,14 @@ const App: React.FC = () => {
     refreshBatches()
   }, [permanentDeleteOrder, refreshBatches])
 
+  const handleBatchPermanentDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return
+    if (!confirm(`确定永久删除选中的 ${selectedIds.size} 条吗？此操作不可撤销！`)) return
+    await permanentDeleteOrders(Array.from(selectedIds))
+    setSelectedIds(new Set())
+    refreshBatches()
+  }, [selectedIds, permanentDeleteOrders, refreshBatches])
+
   const handleShipment = useCallback((order: OrderRow) => {
     setShipmentOrder(order)
     setShowShipmentModal(true)
@@ -305,6 +313,7 @@ const App: React.FC = () => {
         onToggleColumnPanel={() => setShowColPanel(!showColPanel)}
         onBatchChange={handleBatchChange}
         onBatchDelete={handleBatchDelete}
+        onBatchPermanentDelete={handleBatchPermanentDelete}
         onShipmentNoChange={setShipmentNo}
         editMode={editMode}
         onToggleEditMode={handleToggleEditMode}

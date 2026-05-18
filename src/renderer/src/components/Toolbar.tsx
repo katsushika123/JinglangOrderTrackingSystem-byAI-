@@ -15,6 +15,7 @@ interface ToolbarProps {
   onToggleColumnPanel: () => void
   onBatchChange: (name: string) => void
   onBatchDelete: () => void
+  onBatchPermanentDelete?: () => void
   onShipmentNoChange: (no: string) => void
   onToggleEditMode: () => void
   onToggleRecycleBin: () => void
@@ -32,6 +33,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleColumnPanel,
   onBatchChange,
   onBatchDelete,
+  onBatchPermanentDelete,
   shipmentNo,
   onShipmentNoChange,
   editMode,
@@ -83,6 +85,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
       {!showDeleted && selectedCount > 0 && (
         <button className="btn btn-warning btn-sm" onClick={onBatchDelete}>
           &#x1F5D1; 批量删除 ({selectedCount})
+        </button>
+      )}
+      {showDeleted && selectedCount > 0 && onBatchPermanentDelete && (
+        <button className="btn btn-warning btn-sm" onClick={onBatchPermanentDelete}>
+          &#x1F5D1; 批量永久删除 ({selectedCount})
         </button>
       )}
       <span className="hint-text">&#x1F4BE; 自动保存</span>
