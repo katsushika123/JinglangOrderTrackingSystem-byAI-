@@ -7,7 +7,7 @@ export function useBatches() {
   const [dbReady, setDbReady] = useState(false)
 
   useEffect(() => {
-    (window as any).electronAPI?.onDbReady(() => setDbReady(true))
+    window.electronAPI?.onDbReady(() => setDbReady(true))
   }, [])
 
   const fetchBatches = useCallback(async () => {

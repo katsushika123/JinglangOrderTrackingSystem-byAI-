@@ -42,8 +42,8 @@ export function useOrders(): UseOrdersReturn {
 
   useEffect(() => {
     window.electronAPI?.onDbReady(() => setDbReady(true))
-    ;(window as any).electronAPI?.onDbError?.((msg: string) => {
-      alert('数据库初始化失败：' + msg + '\n请检查磁盘空间或删除 ' + '%APPDATA%\\jinglang-order-tracking\\ 后重试')
+    window.electronAPI?.onDbError((msg: string) => {
+      alert('数据库初始化失败：' + msg + '\n请检查磁盘空间或删除 %APPDATA%\\jinglang-order-tracking\\ 后重试')
     })
   }, [])
 
