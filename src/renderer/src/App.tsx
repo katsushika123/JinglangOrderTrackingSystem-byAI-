@@ -47,6 +47,7 @@ const App: React.FC = () => {
     showDeleted,
     setShowDeleted,
     loading,
+    dbReady,
     addOrder,
     editOrder,
     removeOrder,
@@ -319,6 +320,7 @@ const App: React.FC = () => {
         onToggleEditMode={handleToggleEditMode}
         showDeleted={showDeleted}
         onToggleRecycleBin={() => { setShowDeleted(!showDeleted); setEditMode(false) }}
+        dbReady={dbReady}
       >
         {showColPanel && (
           <ColumnPanel
@@ -349,7 +351,7 @@ const App: React.FC = () => {
         onFiltersChange={setFilters}
         editMode={editMode}
         onCellChange={handleCellChange}
-        loading={loading}
+        loading={loading || !dbReady}
         filterResetCounter={filterResetCounter}
       />
 

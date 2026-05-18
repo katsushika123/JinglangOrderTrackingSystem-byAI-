@@ -22,6 +22,7 @@ export interface ElectronAPI {
   saveExcelDialog: (defaultName: string) => Promise<string | null>
   parseExcel: (filePath: string) => Promise<Partial<OrderRow>[]>
   onDbReady: (callback: () => void) => void
+  onDbError: (callback: (msg: string) => void) => void
 }
 
 export interface BatchRow {
@@ -88,7 +89,8 @@ const api: ElectronAPI = {
   openExcelDialog: () => ipcRenderer.invoke('dialog:openExcel'),
   saveExcelDialog: (defaultName) => ipcRenderer.invoke('dialog:saveExcel', defaultName),
   parseExcel: (filePath) => ipcRenderer.invoke('excel:parse', filePath),
-  onDbReady: (callback) => ipcRenderer.once('db-ready', () => callback())
+  onDbReady: (callback) => ipcRenderer.once('db-ready', () => callback()),
+  onDbError: (callback) => ipcRenderer.once('db-error', (_e, msg) => callback(msg))
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

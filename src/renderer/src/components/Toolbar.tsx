@@ -8,6 +8,7 @@ interface ToolbarProps {
   shipmentNo: string
   editMode: boolean
   showDeleted: boolean
+  dbReady: boolean
   onAdd: () => void
   onImport: () => void
   onExport: () => void
@@ -40,6 +41,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onToggleEditMode,
   showDeleted,
   onToggleRecycleBin,
+  dbReady,
   children,
 }) => {
   return (
@@ -47,13 +49,14 @@ const Toolbar: React.FC<ToolbarProps> = ({
       <span className="title">
         <span style={{ color: '#1a73e8' }}>&#x1F4CB;</span> 订单跟踪
         {showDeleted && <span style={{ color: '#d93025', fontSize: '0.75rem' }}> — 回收站</span>}
+        {!dbReady && <span style={{ color: '#f9ab00', fontSize: '0.75rem', marginLeft: 6 }}>数据库初始化中...</span>}
       </span>
-      {!showDeleted && <button className="btn primary" onClick={onAdd}>+ 新增</button>}
-      {!showDeleted && <button className="btn success" onClick={onImport}>&#x1F4E4; 导入清单</button>}
-      <button className="btn" onClick={onExport}>&#x1F4E5; 导出</button>
-      <button className="btn" onClick={onResetFilters}>&#x1F504; 清除筛选</button>
+      {!showDeleted && <button className="btn primary" onClick={onAdd} disabled={!dbReady}>+ 新增</button>}
+      {!showDeleted && <button className="btn success" onClick={onImport} disabled={!dbReady}>&#x1F4E4; 导入清单</button>}
+      <button className="btn" onClick={onExport} disabled={!dbReady}>&#x1F4E5; 导出</button>
+      <button className="btn" onClick={onResetFilters} disabled={!dbReady}>&#x1F504; 清除筛选</button>
       <button className="btn" onClick={onToggleColumnPanel}>&#x1F4CA; 列显示</button>
-      {!showDeleted && <button className={`btn ${editMode ? 'primary' : ''}`} onClick={onToggleEditMode}>
+      {!showDeleted && <button className={`btn ${editMode ? 'primary' : ''}`} onClick={onToggleEditMode} disabled={!dbReady}>
         &#x270F;&#xFE0F; {editMode ? '退出编辑' : '编辑模式'}
       </button>}
       <button className={`btn ${showDeleted ? 'danger' : ''}`} onClick={onToggleRecycleBin}>

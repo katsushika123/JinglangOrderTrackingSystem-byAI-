@@ -6,6 +6,7 @@ export interface UseOrdersReturn {
   orders: OrderRow[]
   stats: StatsRow
   loading: boolean
+  dbReady: boolean
   batchId: string | null
   filters: Record<string, string>
     shipmentNo: string
@@ -41,6 +42,9 @@ export function useOrders(): UseOrdersReturn {
 
   useEffect(() => {
     window.electronAPI?.onDbReady(() => setDbReady(true))
+    ;(window as any).electronAPI?.onDbError?.((msg: string) => {
+      alert('数据库初始化失败：' + msg + '\n请检查磁盘空间或删除 ' + '%APPDATA%\\jinglang-order-tracking\\ 后重试')
+    })
   }, [])
 
   const fetchData = useCallback(async () => {
@@ -131,6 +135,7 @@ export function useOrders(): UseOrdersReturn {
     orders,
     stats,
     loading,
+    dbReady,
     batchId,
     filters,
     shipmentNo,

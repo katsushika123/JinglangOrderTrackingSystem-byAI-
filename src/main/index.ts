@@ -55,9 +55,14 @@ function createWindow(): void {
 app.whenReady().then(async () => {
   createWindow()
   registerIpcHandlers()
-  await initDatabase()
-  dbReady = true
-  mainWindow?.webContents.send('db-ready')
+  try {
+    await initDatabase()
+    dbReady = true
+    mainWindow?.webContents.send('db-ready')
+  } catch (err) {
+    console.error('数据库初始化失败:', err)
+    mainWindow?.webContents.send('db-error', String(err))
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
