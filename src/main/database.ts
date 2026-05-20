@@ -114,6 +114,7 @@ export async function initDatabase(): Promise<void> {
   `)
   try { db.exec(`ALTER TABLE orders ADD COLUMN 备注 TEXT DEFAULT ''`) } catch { /* already exists */ }
   try { db.exec(`ALTER TABLE orders ADD COLUMN deleted INTEGER DEFAULT 0`) } catch { /* already exists */ }
+  try { db.exec(`ALTER TABLE orders DROP COLUMN 打标`) } catch { /* already dropped or new schema */ }
 }
 
 interface BatchRow {
