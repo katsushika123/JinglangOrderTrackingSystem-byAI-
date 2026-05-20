@@ -12,7 +12,6 @@ import {
   createShipment,
   updateShipment,
   deleteShipment,
-  toggleOrderCheck,
   restoreOrder,
   restoreOrders,
   permanentDeleteOrder,
@@ -102,10 +101,6 @@ function registerIpcHandlers(): void {
 
   ipcMain.handle('db:deleteOrders', async (_event, ids: number[]) => {
     return deleteOrders(ids)
-  })
-
-  ipcMain.handle('db:toggleCheck', async (_event, id: number) => {
-    return toggleOrderCheck(id)
   })
 
   // Recycle Bin

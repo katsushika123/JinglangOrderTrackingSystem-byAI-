@@ -24,7 +24,6 @@ export interface UseOrdersReturn {
   restoreOrders: (ids: number[]) => Promise<void>
   permanentDeleteOrder: (id: number) => Promise<void>
   permanentDeleteOrders: (ids: number[]) => Promise<void>
-  toggleOrderCheck: (id: number) => Promise<void>
   setLabelQty: (id: number, qty: number) => Promise<void>
   importOrdersFromExcel: (orders: Partial<OrderRow>[], batchName: string) => Promise<number>
 }
@@ -115,11 +114,6 @@ export function useOrders(): UseOrdersReturn {
     await fetchData()
   }, [fetchData])
 
-  const toggleOrderCheck = useCallback(async (id: number) => {
-    setOrders(prev => prev.map(o => o.id === id ? { ...o, 打标: !o.打标 } : o))
-    await ipc.toggleCheck(id)
-  }, [])
-
   const setLabelQty = useCallback(async (id: number, qty: number) => {
     await ipc.updateOrder(id, { 贴标: qty })
     await fetchData()
@@ -153,7 +147,6 @@ export function useOrders(): UseOrdersReturn {
     restoreOrders: restoreOrdersFn,
     permanentDeleteOrder: permanentDeleteOrderFn,
     permanentDeleteOrders: permanentDeleteOrdersFn,
-    toggleOrderCheck,
     setLabelQty,
     importOrdersFromExcel,
   }

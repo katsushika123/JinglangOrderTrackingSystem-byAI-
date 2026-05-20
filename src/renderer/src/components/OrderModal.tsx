@@ -20,7 +20,6 @@ const emptyForm = {
   weight_unit: 'kg' as string,
   送货地址: '',
   来料日期: '',
-  打标: false,
   贴标: 0,
 }
 
@@ -40,7 +39,6 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
         weight_unit: order.weight_unit,
         送货地址: order.送货地址,
         来料日期: order.来料日期,
-        打标: order.打标,
         贴标: order.贴标 || 0,
       })
     } else {
@@ -144,14 +142,6 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
           />
         </div>
         <div className="checkbox-group">
-          <label>
-            <input
-              type="checkbox"
-              checked={form.打标}
-              onChange={(e) => setForm({ ...form, 打标: e.target.checked })}
-            />
-            是否打标
-          </label>
           <label>
             <span style={{ marginRight: 4 }}>贴标数量：</span>
             <input

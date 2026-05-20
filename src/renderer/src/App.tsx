@@ -56,7 +56,6 @@ const App: React.FC = () => {
     restoreOrders,
     permanentDeleteOrder,
     permanentDeleteOrders,
-    toggleOrderCheck,
     setLabelQty,
     importOrdersFromExcel,
     refresh,
@@ -193,13 +192,6 @@ const App: React.FC = () => {
     await refresh()
     await refreshBatches()
   }, [refresh, refreshBatches])
-
-  const handleToggleCheck = useCallback(
-    async (id: number) => {
-      await toggleOrderCheck(id)
-    },
-    [toggleOrderCheck]
-  )
 
   const handleResetFilters = useCallback(() => {
     if (batchId || Object.values(filters).some(v => v) || shipmentNo) {
@@ -340,7 +332,6 @@ const App: React.FC = () => {
         selectedIds={selectedIds}
         onSelectOne={handleSelectOne}
         onSelectAll={handleSelectAll}
-        onToggleCheck={handleToggleCheck}
         onLabelQtyChange={setLabelQty}
         onShip={handleShipment}
         onDelete={handleDeleteOrder}

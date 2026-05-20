@@ -12,7 +12,6 @@ export interface OrderRow {
   weight_unit: string
   送货地址: string
   来料日期: string
-  打标: boolean
   贴标: number
   备注: string
   shipments_total_qty: number
@@ -57,7 +56,6 @@ export const ALL_COLUMNS: ColumnDef[] = [
   { key: 'weightInfo', label: '重量/面积/体积', filterable: false },
   { key: '送货地址', label: '送货地址', filterable: true },
   { key: '来料日期', label: '来料日期', filterable: true },
-  { key: '打标', label: '是否打标', filterable: false },
   { key: '贴标', label: '贴标进度', filterable: false },
 ]
 
@@ -71,7 +69,6 @@ export const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
   'weightInfo': false,
   '送货地址': true,
   '来料日期': false,
-  '打标': true,
   '贴标': true,
 }
 

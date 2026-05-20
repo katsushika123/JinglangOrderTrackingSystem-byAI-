@@ -22,7 +22,6 @@ interface DataTableProps {
   loading?: boolean
   onSelectOne: (id: number, checked: boolean) => void
   onSelectAll: (checked: boolean) => void
-  onToggleCheck: (id: number) => void
   onLabelQtyChange: (id: number, qty: number) => void
   onShip: (order: OrderRow) => void
   onDelete: (id: number) => void
@@ -36,7 +35,7 @@ interface DataTableProps {
   onCellChange?: (id: number, field: string, value: string) => void
 }
 
-type OrderFieldKey = keyof Pick<OrderRow, '项目号' | '钣金单据编码' | '物料长代码' | '物料名称' | '色号' | '数量' | 'weight_value' | 'weight_unit' | '送货地址' | '来料日期' | '打标' | '贴标' | '备注'>
+type OrderFieldKey = keyof Pick<OrderRow, '项目号' | '钣金单据编码' | '物料长代码' | '物料名称' | '色号' | '数量' | 'weight_value' | 'weight_unit' | '送货地址' | '来料日期' | '贴标' | '备注'>
 
 function getOrderField(item: OrderRow, key: string): string {
   const fieldKeys = new Set<string>(['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '送货地址', '来料日期', '备注'])
@@ -44,7 +43,6 @@ function getOrderField(item: OrderRow, key: string): string {
   if (key === '数量') return String(item.数量 || '')
   if (key === 'weight_value') return String(item.weight_value || '')
   if (key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
-  if (key === '打标') return item.打标 ? '是' : '否'
   if (key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
   return ''
 }
@@ -67,7 +65,6 @@ const DataTable: React.FC<DataTableProps> = ({
   selectedIds,
   onSelectOne,
   onSelectAll,
-  onToggleCheck,
   onLabelQtyChange,
   onShip,
   onDelete,
@@ -139,7 +136,6 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const columnWidths: Record<string, string> = {
     '数量': '56px',
-    '打标': '58px',
     '来料日期': '80px',
     '送货地址': 'auto',
   }
@@ -196,7 +192,6 @@ const DataTable: React.FC<DataTableProps> = ({
 
   const getCellText = (item: OrderRow, col: ColumnDef): string => {
     if (col.key === 'weightInfo') return `${item.weight_value || 0} ${item.weight_unit}`
-    if (col.key === '打标') return item.打标 ? '是' : '否'
     if (col.key === '贴标') return `${item.贴标 || 0} / ${item.数量}`
     return getOrderField(item, col.key)
   }
@@ -215,16 +210,6 @@ const DataTable: React.FC<DataTableProps> = ({
   const renderCell = (item: OrderRow, col: ColumnDef) => {
     if (col.key === 'weightInfo') {
       return `${item.weight_value || 0} ${item.weight_unit}`
-    }
-    if (col.key === '打标') {
-      return (
-        <input
-          type="checkbox"
-          checked={!!item.打标}
-          disabled={showDeleted}
-          onChange={() => !showDeleted && onToggleCheck(item.id)}
-        />
-      )
     }
     if (col.key === '贴标') {
       const labelQty = item.贴标 || 0
@@ -375,7 +360,7 @@ const DataTable: React.FC<DataTableProps> = ({
                 {visibleColumns.map((key) => {
                   const col = columns.find((c) => c.key === key)
                   if (!col) return null
-                   return <td key={col.key} style={col.key === '打标' ? { textAlign: 'center' } : undefined} className={editMode && EDITABLE_COLUMNS[col.key] ? 'editable-cell' : ''} title={getCellText(item, col)}>{renderCell(item, col)}</td>
+                   return <td key={col.key} title={getCellText(item, col)}>{renderCell(item, col)}</td>
                 })}
                 <td className="progress-cell">
                   <div className="progress-bar-wrap">
