@@ -14,11 +14,11 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const [editingId, setEditingId] = useState<number | null>(null)
 
   useEffect(() => {
-    if (visible) {
+    if (visible && order) {
       setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
       setEditingId(null)
     }
-  }, [visible])
+  }, [visible, order?.id])
 
   if (!visible || !order) return null
 
