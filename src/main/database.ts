@@ -546,7 +546,7 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     '物料名称': ['物料名称'],
     '数量': ['数量', 'qty'],
     '色号': ['色号'],
-    '烤漆订单号': ['烤漆厂订单号', '烤漆订单号'],
+    '烤漆订单号': ['烤漆厂订单号'],
     '送货地址': ['送货地址'],
   }
 
