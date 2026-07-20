@@ -355,8 +355,9 @@ const DataTable: React.FC<DataTableProps> = ({
         <tbody>
           {orders.map((item, index) => {
             const pct = getProgress(item)
+            const completed = pct >= 100
             return (
-              <tr key={item.id}>
+              <tr key={item.id} className={completed ? 'row-completed' : undefined}>
                 <td className="check-cell">
                   <input
                     type="checkbox"
