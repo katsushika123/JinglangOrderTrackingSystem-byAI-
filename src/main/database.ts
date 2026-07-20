@@ -554,13 +554,14 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
     if (!row) return 0
     let cnt = 0
     for (const h of row) {
-      const hn = String(h || '').trim().normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+      const hn = String(h || '').trim().normalize('NFC').replace(/[\s\u3000\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+      let matched = false
       for (const aliases of Object.values(fieldMapping)) {
         for (const a of aliases) {
-          const an = a.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
-          if (hn === an || hn.includes(an) || an.includes(hn)) { cnt++; break }
+          const an = a.normalize('NFC').replace(/[\s\u3000\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+          if (hn === an || hn.includes(an) || an.includes(hn)) { cnt++; matched = true; break }
         }
-        break // count once per header
+        if (matched) break
       }
     }
     return cnt
@@ -577,12 +578,12 @@ export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
 
   const colMap: Record<string, number> = {}
   headers.forEach((h, idx) => {
-    const hn = h.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+    const hn = h.normalize('NFC').replace(/[\s\u3000\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
     let bestLen = 0
     let bestField = ''
     for (const [field, aliases] of Object.entries(fieldMapping)) {
       for (const a of aliases) {
-        const an = a.normalize('NFC').replace(/[\s\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
+        const an = a.normalize('NFC').replace(/[\s\u3000\uFEFF\u200B-\u200F\u202A-\u202E\u00A0]+/g, '')
         const matchLen = hn === an ? 999 : (hn.includes(an) || an.includes(hn)) ? Math.max(hn.length, an.length) : 0
         if (matchLen > bestLen) {
           bestLen = matchLen
