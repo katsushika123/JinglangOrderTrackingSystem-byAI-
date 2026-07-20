@@ -17,7 +17,8 @@ body {
   font-family: var(--excel-font);
   background: #e8eaed;
   color: #202124;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -26,11 +27,13 @@ body {
 
 #root {
   width: 100%;
+  height: 100%;
   max-width: 100%;
 }
 
 .container {
   width: 100%;
+  height: 100%;
   max-width: 100%;
   background: #fff;
   border-radius: 0;
@@ -39,7 +42,6 @@ body {
   display: flex;
   flex-direction: column;
   border: 1px solid #d0d0d0;
-  min-height: 100vh;
 }
 
 .toolbar {
@@ -173,8 +175,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   border-top: 1px solid #e0e0e0;
-  max-height: calc(100vh - 180px);
-  min-height: 300px;
+  min-height: 0;
 }
 
 table.excel-table {
