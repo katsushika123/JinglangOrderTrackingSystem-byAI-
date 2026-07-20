@@ -5,7 +5,7 @@ interface StatsBarProps {
   stats: StatsRow
 }
 
-const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
+const StatsBar: React.FC<StatsBarProps> = React.memo(function StatsBar({ stats }) {
   return (
     <div className="stats-bar">
       <span className="stat-item">
@@ -19,6 +19,6 @@ const StatsBar: React.FC<StatsBarProps> = ({ stats }) => {
       </span>
     </div>
   )
-}
+})
 
 export default StatsBar

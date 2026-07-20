@@ -75,5 +75,4 @@ export const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
   '贴标': true,
 }
 
-export const STAT_DIR = 'order-tracker-col-settings'
 export const COL_VIS_KEY = 'column_visibility'

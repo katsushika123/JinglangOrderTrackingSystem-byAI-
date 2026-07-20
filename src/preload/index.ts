@@ -41,6 +41,7 @@ export interface OrderRow {
   物料名称: string
   数量: number
   色号: string
+  烤漆订单号: string
   weight_value: number
   weight_unit: string
   送货地址: string

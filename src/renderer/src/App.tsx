@@ -223,8 +223,9 @@ const App: React.FC = () => {
       setBatchDefaultName(fileName)
       setPendingImportOrders(parsed)
       setShowBatchNameDialog(true)
-    } catch (err: any) {
-      alert('解析出错: ' + err.message)
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('解析出错: ' + msg)
       console.error(err)
     }
   }, [])
@@ -240,8 +241,9 @@ const App: React.FC = () => {
         refreshBatches()
         setEditMode(false)
         alert(`成功导入 ${count} 条记录到清单【${name}】，来料日期：${date}`)
-      } catch (err: any) {
-        alert('导入失败: ' + (err.message || '未知错误'))
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        alert('导入失败: ' + (msg || '未知错误'))
         console.error(err)
       }
     },
@@ -260,7 +262,7 @@ const App: React.FC = () => {
     if (!trimmed) return
     const numFields = ['数量', 'weight_value']
     const val: string | number = numFields.includes(field) ? (parseFloat(trimmed) || 0) : trimmed
-    if (numFields.includes(field) && val === 0) return
+    if (field === '数量' && (val as number) <= 0) return
     await editOrder(id, { [field]: val })
   }, [editOrder])
 
@@ -275,8 +277,9 @@ const App: React.FC = () => {
       if (!filePath) return
       await ipc.exportOrders(batchId, filePath)
       alert(`导出成功！\n${filePath}`)
-    } catch (err: any) {
-      alert('导出失败: ' + (err.message || '未知错误'))
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err)
+      alert('导出失败: ' + (msg || '未知错误'))
     }
   }, [batchId])
 
@@ -294,7 +297,6 @@ const App: React.FC = () => {
   return (
     <div className="container">
       <Toolbar
-        batchCount={batches.length}
         selectedCount={selectedIds.size}
         currentBatch={batchId || '__ALL__'}
         batches={batchOptions}

@@ -42,10 +42,6 @@ export async function permanentDeleteOrders(ids: number[]): Promise<void> {
   return api.permanentDeleteOrders(ids)
 }
 
-export async function toggleCheck(id: number): Promise<void> {
-  return api.toggleCheck(id)
-}
-
 export async function createShipment(orderId: number, shipment: Partial<ShipmentRow>): Promise<ShipmentRow> {
   return api.createShipment(orderId, shipment)
 }

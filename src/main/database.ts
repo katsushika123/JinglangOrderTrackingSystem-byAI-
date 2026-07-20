@@ -188,9 +188,9 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       COALESCE((SELECT SUM(出货数量) FROM shipments WHERE order_id = o.id), 0) AS shipments_total_qty
     FROM orders o
     LEFT JOIN batches b ON o.batch_id = b.id
-    WHERE o.deleted = ${showDeleted ? 1 : 0}
+    WHERE o.deleted = ?
   `
-  const params: (string | number)[] = []
+  const params: (string | number)[] = [showDeleted ? 1 : 0]
 
   if (batchId) {
     const batchRows = dbAll(`SELECT id FROM batches WHERE name = ?`, [batchId])
@@ -318,7 +318,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
     备注: order.备注 || '',
     shipments_total_qty: 0,
     shipments: [],
-    created_at: new Date().toISOString()
+    created_at: new Date().toLocaleString('sv-SE').replace('T', ' ')
   }
 }
 
@@ -338,6 +338,7 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
     'weight_unit': 'weight_unit',
     '送货地址': '送货地址',
     '来料日期': '来料日期',
+    '贴标': '贴标',
     '备注': '备注',
   }
 
@@ -347,13 +348,9 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
       const val = (data as any)[key]
       if (key === '数量' && typeof val === 'number' && val <= 0) {
         throw new Error('数量必须大于0')
-      } else if (key === '贴标' && typeof val === 'number') {
-        fields.push(`"${col}" = ?`)
-        values.push(val)
-      } else {
-        fields.push(`"${col}" = ?`)
-        values.push(val ?? '')
       }
+      fields.push(`"${col}" = ?`)
+      values.push(val ?? '')
     }
   }
 
@@ -444,6 +441,7 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
     const batchRows = dbAll(`SELECT id FROM batches WHERE name = ?`, [batchName])
     const batchId = (batchRows[0]?.id as number) || 0
 
+    // 从后往前插入以保持 Excel 原始顺序（配合 ORDER BY o.id DESC 显示）
     for (let i = orders.length - 1; i >= 0; i--) {
       const item = orders[i]
       db.run(
@@ -473,7 +471,7 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
     throw e
   }
 
-  saveDb()
+  try { saveDb() } catch { /* 文件保存失败但事务已提交，下次 dbRun 会自动重试 */ }
   return orders.length
 }
 
@@ -534,6 +532,7 @@ export function parseWeightAndUnit(raw: unknown): { weightValue: number; weightU
 export function parseExcelFile(filePath: string): Partial<OrderRow>[] {
   const workbook = XLSX.readFile(filePath)
   const sheetName = workbook.SheetNames[0]
+  if (!sheetName) return []
   const worksheet = workbook.Sheets[sheetName]
   const jsonData: unknown[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
 

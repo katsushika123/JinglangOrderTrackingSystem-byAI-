@@ -51,7 +51,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
   if (!visible) return null
 
   const handleSave = async () => {
-    if (!form.物料名称 || form.数量 <= 0) {
+    if (!form.物料名称.trim() || form.数量 <= 0) {
       alert('请填写物料名称和有效数量')
       return
     }

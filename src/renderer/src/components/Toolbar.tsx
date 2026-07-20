@@ -1,7 +1,6 @@
 import React from 'react'
 
 interface ToolbarProps {
-  batchCount: number
   selectedCount: number
   currentBatch: string
   batches: Array<{ name: string; count: number }>

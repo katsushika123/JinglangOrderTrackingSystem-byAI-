@@ -19,7 +19,9 @@ const NotesDialog: React.FC<NotesDialogProps> = ({ visible, order, onSave, onClo
   if (!visible || !order) return null
 
   const handleSave = async () => {
-    await onSave(order.id, note.trim())
+    const trimmed = note.trim()
+    if (!trimmed) return
+    await onSave(order.id, trimmed)
     onClose()
   }
 

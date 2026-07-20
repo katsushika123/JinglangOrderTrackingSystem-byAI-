@@ -67,7 +67,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
     setForm({
       出货日期: ship.出货日期,
       出货单号: ship.出货单号,
-      出货数量: String(ship.出货数量 || ''),
+      出货数量: String(ship.出货数量 ?? '0'),
     })
   }
 

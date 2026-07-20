@@ -450,6 +450,11 @@ table.excel-table tbody tr:hover td {
   border-radius: 3px;
 }
 
+.table-wrapper {
+  scrollbar-width: thin;
+  scrollbar-color: #c8c8c8 #f1f1f1;
+}
+
 .column-panel {
   position: absolute;
   top: 100%;

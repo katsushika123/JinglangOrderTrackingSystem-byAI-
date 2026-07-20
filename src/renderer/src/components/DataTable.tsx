@@ -134,6 +134,13 @@ const DataTable: React.FC<DataTableProps> = ({
     document.addEventListener('mouseup', handleResizeEnd)
   }, [handleResizeEnd])
 
+  useEffect(() => {
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMoveRef.current)
+      document.removeEventListener('mouseup', handleResizeEnd)
+    }
+  }, [handleResizeEnd])
+
   const columnWidths: Record<string, string> = {
     '数量': '56px',
     '来料日期': '80px',
@@ -393,11 +400,17 @@ const DataTable: React.FC<DataTableProps> = ({
               </tr>
             )
           })}
-          {orders.length === 0 && (() => {
-            if (Object.values(localFilters).some(v => v) || loading) return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F50E; 没有匹配的结果，请尝试调整筛选条件</td></tr>)
-            if (showDeleted) return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F5D1; 回收站为空</td></tr>)
-            return (<tr><td colSpan={visibleColumns.length + 4} className="empty-row">&#x1F4ED; 暂无数据，请添加或导入清单</td></tr>)
-          })()}
+          {orders.length === 0 && (
+            <tr>
+              <td colSpan={visibleColumns.length + 4} className="empty-row">
+                {Object.values(localFilters).some(v => v) || loading
+                  ? <>没有匹配的结果，请尝试调整筛选条件</>
+                  : showDeleted
+                    ? <>回收站为空</>
+                    : <>暂无数据，请添加或导入清单</>}
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
     </div>

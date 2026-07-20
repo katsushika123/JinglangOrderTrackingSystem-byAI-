@@ -38,6 +38,7 @@ export function useOrders(): UseOrdersReturn {
   const [showDeleted, setShowDeleted] = useState(false)
   const [dbReady, setDbReady] = useState(false)
   const mountedRef = useRef(true)
+  const requestSeqRef = useRef(0)
 
   useEffect(() => {
     window.electronAPI?.onDbReady(() => setDbReady(true))
@@ -48,19 +49,23 @@ export function useOrders(): UseOrdersReturn {
 
   const fetchData = useCallback(async () => {
     setLoading(true)
+    const seq = ++requestSeqRef.current
     try {
       const [data, s] = await Promise.all([
         ipc.getOrders(batchId, filters, shipmentNo, showDeleted),
         ipc.getStats(batchId)
       ])
-      if (mountedRef.current) {
+      if (mountedRef.current && seq === requestSeqRef.current) {
         setOrders(data)
         setStats(s)
       }
     } catch (err) {
       console.error('获取数据失败:', err)
+      if (mountedRef.current && seq === requestSeqRef.current) {
+        setOrders([])
+      }
     } finally {
-      if (mountedRef.current) setLoading(false)
+      if (mountedRef.current && seq === requestSeqRef.current) setLoading(false)
     }
   }, [batchId, filters, shipmentNo, showDeleted])
 

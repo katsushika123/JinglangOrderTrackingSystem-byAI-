@@ -7,7 +7,7 @@ interface ColumnPanelProps {
   onToggle: (key: string) => void
 }
 
-const ColumnPanel: React.FC<ColumnPanelProps> = ({ columns, visibility, onToggle }) => {
+const ColumnPanel: React.FC<ColumnPanelProps> = React.memo(function ColumnPanel({ columns, visibility, onToggle }) {
   return (
     <div className="column-panel">
       {columns.map((col) => (
@@ -22,6 +22,6 @@ const ColumnPanel: React.FC<ColumnPanelProps> = ({ columns, visibility, onToggle
       ))}
     </div>
   )
-}
+})
 
 export default ColumnPanel
