@@ -8,6 +8,7 @@ export interface OrderRow {
   物料名称: string
   数量: number
   色号: string
+  烤漆订单号: string
   weight_value: number
   weight_unit: string
   送货地址: string
@@ -53,6 +54,7 @@ export const ALL_COLUMNS: ColumnDef[] = [
   { key: '物料名称', label: '物料名称', filterable: true },
   { key: '数量', label: '数量', filterable: false },
   { key: '色号', label: '色号', filterable: true },
+  { key: '烤漆订单号', label: '烤漆订单号', filterable: true },
   { key: 'weightInfo', label: '重量/面积/体积', filterable: false },
   { key: '送货地址', label: '送货地址', filterable: true },
   { key: '来料日期', label: '来料日期', filterable: true },
@@ -66,6 +68,7 @@ export const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
   '物料名称': true,
   '数量': true,
   '色号': false,
+  '烤漆订单号': true,
   'weightInfo': false,
   '送货地址': true,
   '来料日期': false,
