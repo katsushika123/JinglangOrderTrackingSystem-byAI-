@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type { OrderRow, ShipmentRow } from '../types'
 import * as ipc from '../ipc'
 
@@ -12,11 +12,15 @@ interface ShipmentModalProps {
 const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, onDataChanged }) => {
   const [form, setForm] = useState({ 出货日期: '', 出货单号: '', 出货数量: '' })
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const shipmentNoRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (visible && order) {
       setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
       setEditingId(null)
+      setErrorMsg('')
+      setTimeout(() => shipmentNoRef.current?.focus(), 50)
     }
   }, [visible, order?.id])
 
@@ -32,12 +36,19 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const resetForm = () => {
     setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
     setEditingId(null)
+    setErrorMsg('')
+  }
+
+  const showError = (msg: string) => {
+    setErrorMsg(msg)
+    setTimeout(() => shipmentNoRef.current?.focus(), 50)
   }
 
   const handleAddOrUpdate = async () => {
+    setErrorMsg('')
     const qty = getQty()
     if (!form.出货日期 || !form.出货单号 || qty <= 0) {
-      alert('请完整填写出货信息')
+      showError('请完整填写出货信息')
       return
     }
 
@@ -45,11 +56,11 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
       ? (order.shipments.find((s) => s.id === editingId)?.出货数量 || 0)
       : 0
     if (shippedTotal + qty - editQty > order.数量) {
-      alert('出货数量不能超过来料总数')
+      showError('出货数量不能超过来料总数')
       return
     }
     if (shippedTotal + qty - editQty > labelQty) {
-      alert(`出货数量不能超过贴标数量 (${labelQty})`)
+      showError(`出货数量不能超过贴标数量 (${labelQty})`)
       return
     }
 
@@ -69,6 +80,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
       出货单号: ship.出货单号,
       出货数量: String(ship.出货数量 ?? '0'),
     })
+    setErrorMsg('')
   }
 
   const handleDelete = async (shipId: number) => {
@@ -86,6 +98,12 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
           &#x1F4E6; 来料：<strong>{order.数量}</strong> | &#x1F3F7; 已贴标：<strong>{labelQty}</strong> | &#x2705; 已出货：<strong>{shippedTotal}</strong> | 剩余可出：<strong>{shippable}</strong>
         </p>
 
+        {errorMsg && (
+          <div style={{ background: '#fef0f0', color: '#d93025', padding: '6px 10px', borderRadius: 4, marginBottom: 8, fontSize: '0.78rem', border: '1px solid #f5c6cb' }}>
+            {errorMsg}
+          </div>
+        )}
+
         <div style={{ background: '#f6ffed', padding: 10, borderRadius: 5, marginBottom: 8, border: '1px solid #d4e8c0' }}>
           <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', flexWrap: 'wrap' }}>
             <div className="form-group" style={{ flex: 2, minWidth: 100 }}>
@@ -94,7 +112,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
             </div>
             <div className="form-group" style={{ flex: 2, minWidth: 100 }}>
               <label>出货单号</label>
-              <input value={form.出货单号} onChange={(e) => setForm({ ...form, 出货单号: e.target.value })} placeholder="单号" />
+              <input ref={shipmentNoRef} value={form.出货单号} onChange={(e) => setForm({ ...form, 出货单号: e.target.value })} placeholder="单号" />
             </div>
             <div className="form-group" style={{ flex: 2, minWidth: 80 }}>
               <label>出货数量</label>
