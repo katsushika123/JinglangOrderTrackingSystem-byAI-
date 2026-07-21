@@ -296,7 +296,7 @@ const App: React.FC = () => {
   }, [importOrdersFromExcel, refreshBatches, batches])
 
   const getUniqueBatchName = (desired: string): string => {
-    const existing = new Set(batches.map(b => b.name))
+    const existing = new Set(batches.filter(b => b.count > 0).map(b => b.name))
     if (!existing.has(desired)) return desired
     let i = 2
     while (existing.has(`${desired} (${i})`)) i++
