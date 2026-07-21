@@ -211,25 +211,29 @@ const App: React.FC = () => {
   }
 
   const extractDateFromName = (name: string): { cleanedName: string; dateStr: string } => {
-    const patterns = [
-      /(\d{4})[.\-_]?(\d{1,2})[.\-_]?(\d{1,2})/,
-      /(\d{1,2})[.\-_](\d{1,2})/,
-    ]
     const today = new Date()
-    for (const re of patterns) {
-      const m = re.exec(name)
-      if (!m) continue
-      if (m.length === 4) {
-        const y = m[1], mo = m[2].padStart(2, '0'), d = m[3].padStart(2, '0')
-        return { cleanedName: name.replace(m[0], '').replace(/[_\-.]+/g, ' ').trim(), dateStr: `${y}-${mo}-${d}` }
-      }
-      if (m.length === 3) {
-        const mo = m[1].padStart(2, '0'), d = m[2].padStart(2, '0')
-        const y = today.getFullYear()
-        return { cleanedName: name.replace(m[0], '').replace(/[_\-.]+/g, ' ').trim(), dateStr: `${y}-${mo}-${d}` }
+    // 先尝试完整日期：YYYY-MM-DD / YYYY.MM.DD / YYYY_MM_DD / YYYYMMDD
+    let m = name.match(/(\d{4})[.\-_]?(\d{1,2})[.\-_]?(\d{1,2})/)
+    if (m) {
+      const mo = Math.min(12, Math.max(1, parseInt(m[2]))).toString().padStart(2, '0')
+      const d = Math.min(31, Math.max(1, parseInt(m[3]))).toString().padStart(2, '0')
+      const cleaned = name.replace(m[0], '').replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
+      return { cleanedName: cleaned || '未命名', dateStr: `${m[1]}-${mo}-${d}` }
+    }
+    // 再尝试月-日格式：M-D / M.D / M_D
+    m = name.match(/(\d{1,2})[.\-_](\d{1,2})/)
+    if (m) {
+      const mon = parseInt(m[1])
+      const day = parseInt(m[2])
+      if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
+        const mo = mon.toString().padStart(2, '0')
+        const d = day.toString().padStart(2, '0')
+        const cleaned = name.replace(m[0], '').replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
+        return { cleanedName: cleaned || '未命名', dateStr: `${today.getFullYear()}-${mo}-${d}` }
       }
     }
-    return { cleanedName: name, dateStr: new Date().toISOString().slice(0, 10) }
+    const cleaned = name.replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
+    return { cleanedName: cleaned || '未命名', dateStr: today.toISOString().slice(0, 10) }
   }
 
   const handleImport = useCallback(async () => {
