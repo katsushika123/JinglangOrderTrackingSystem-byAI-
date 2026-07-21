@@ -276,9 +276,10 @@ const App: React.FC = () => {
         }
         const rawName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
         const { cleanedName, dateStr } = extractDateFromName(rawName)
+        const uniqueName = getUniqueBatchName(cleanedName)
         const processed = processImportData(parsed)
         const items = processed.map(item => ({ ...item, 来料日期: dateStr }))
-        const count = await importOrdersFromExcel(items, cleanedName)
+        const count = await importOrdersFromExcel(items, uniqueName)
         totalImported += count
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
@@ -292,26 +293,36 @@ const App: React.FC = () => {
     } else {
       alert(`批量导入完成！成功导入 ${totalImported} 条记录`)
     }
-  }, [importOrdersFromExcel, refreshBatches])
+  }, [importOrdersFromExcel, refreshBatches, batches])
+
+  const getUniqueBatchName = (desired: string): string => {
+    const existing = new Set(batches.map(b => b.name))
+    if (!existing.has(desired)) return desired
+    let i = 2
+    while (existing.has(`${desired} (${i})`)) i++
+    return `${desired} (${i})`
+  }
 
   const handleBatchNameConfirm = useCallback(
     async (name: string, date: string) => {
       try {
+        const uniqueName = getUniqueBatchName(name)
         const items = pendingImportOrders.map(item => ({ ...item, 来料日期: date }))
-        const count = await importOrdersFromExcel(items, name)
+        const count = await importOrdersFromExcel(items, uniqueName)
         setShowBatchNameDialog(false)
         setPendingImportOrders([])
-        setBatchId(name)
+        setBatchId(uniqueName)
         refreshBatches()
         setEditMode(false)
-        alert(`成功导入 ${count} 条记录到清单【${name}】，来料日期：${date}`)
+        const suffix = uniqueName !== name ? `（原名【${name}】已存在，自动重命名为【${uniqueName}】）` : ''
+        alert(`成功导入 ${count} 条记录到清单【${uniqueName}】，来料日期：${date}${suffix ? '\n' + suffix : ''}`)
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
         alert('导入失败: ' + (msg || '未知错误'))
         console.error(err)
       }
     },
-    [pendingImportOrders, importOrdersFromExcel, setBatchId, refreshBatches]
+    [pendingImportOrders, importOrdersFromExcel, setBatchId, refreshBatches, batches]
   )
 
   const handleToggleEditMode = useCallback(() => {
