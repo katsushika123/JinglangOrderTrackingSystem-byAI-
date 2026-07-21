@@ -91,8 +91,17 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   }
 
   const handleDelete = async (shipId: number) => {
-    if (!confirm('确定删除这条出货记录吗？')) return
+    if (!confirm('确定删除这条出货记录吗？此操作会同步减少贴标数量')) return
+    const ship = order.shipments.find(s => s.id === shipId)
+    const deletedQty = ship?.出货数量 || 0
     await ipc.deleteShipment(shipId)
+    if (deletedQty > 0) {
+      const remainingShipped = order.shipments
+        .filter(s => s.id !== shipId)
+        .reduce((sum, s) => sum + s.出货数量, 0)
+      const newLabel = Math.max((order.贴标 || 0) - deletedQty, remainingShipped)
+      await ipc.updateOrder(order.id, { 贴标: newLabel })
+    }
     if (editingId === shipId) resetForm()
     onDataChanged()
   }

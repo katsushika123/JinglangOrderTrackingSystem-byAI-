@@ -231,9 +231,10 @@ const DataTable: React.FC<DataTableProps> = ({
         return <span style={{ fontSize: '0.65rem', color: '#888' }}>{labelQty} / {item.数量}</span>
       }
       const editVal = labelEdits[item.id] ?? String(labelQty)
+      const shippedTotal = item.shipments_total_qty || 0
       const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const v = parseFloat(e.target.value)
-        if (!isNaN(v) && v >= 0 && v <= item.数量) {
+        if (!isNaN(v) && v >= shippedTotal && v <= item.数量) {
           onLabelQtyChange(item.id, v)
         }
         setLabelEdits(prev => {
@@ -247,7 +248,7 @@ const DataTable: React.FC<DataTableProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
             <input
               type="number"
-              min="0"
+              min={shippedTotal}
               max={item.数量}
               step="any"
               value={editVal}
