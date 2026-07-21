@@ -229,6 +229,13 @@ const App: React.FC = () => {
     return { cleanedName: name, dateStr: today.toISOString().slice(0, 10) }
   }
 
+  const processImportData = (items: Partial<OrderRow>[]): Partial<OrderRow>[] => {
+    return items.map(item => ({
+      ...item,
+      物料长代码: (item.物料长代码 || '').replace(/\.01$/g, '.02'),
+    }))
+  }
+
   const handleImport = useCallback(async () => {
     const filePath = await ipc.openExcelDialog()
     if (!filePath) return
@@ -241,9 +248,10 @@ const App: React.FC = () => {
       }
       const rawName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
       const { cleanedName, dateStr } = extractDateFromName(rawName)
+      const processed = processImportData(parsed)
       setBatchDefaultName(cleanedName)
       setBatchDefaultDate(dateStr)
-      setPendingImportOrders(parsed)
+      setPendingImportOrders(processed)
       setShowBatchNameDialog(true)
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -268,7 +276,8 @@ const App: React.FC = () => {
         }
         const rawName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
         const { cleanedName, dateStr } = extractDateFromName(rawName)
-        const items = parsed.map(item => ({ ...item, 来料日期: dateStr }))
+        const processed = processImportData(parsed)
+        const items = processed.map(item => ({ ...item, 来料日期: dateStr }))
         const count = await importOrdersFromExcel(items, cleanedName)
         totalImported += count
       } catch (err: unknown) {
