@@ -252,6 +252,39 @@ const App: React.FC = () => {
     }
   }, [])
 
+  const handleBatchImport = useCallback(async () => {
+    const filePaths = await ipc.openExcelBatchDialog()
+    if (!filePaths || filePaths.length === 0) return
+
+    let totalImported = 0
+    const errors: string[] = []
+
+    for (const filePath of filePaths) {
+      try {
+        const parsed = await window.electronAPI.parseExcel(filePath)
+        if (!parsed || parsed.length === 0) {
+          errors.push(`${filePath.split(/[\\/]/).pop()}: 未解析到有效数据`)
+          continue
+        }
+        const rawName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
+        const { cleanedName, dateStr } = extractDateFromName(rawName)
+        const items = parsed.map(item => ({ ...item, 来料日期: dateStr }))
+        const count = await importOrdersFromExcel(items, cleanedName)
+        totalImported += count
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        errors.push(`${filePath.split(/[\\/]/).pop()}: ${msg}`)
+      }
+    }
+
+    refreshBatches()
+    if (errors.length > 0) {
+      alert(`批量导入完成！成功导入 ${totalImported} 条记录\n\n以下文件导入失败:\n${errors.join('\n')}`)
+    } else {
+      alert(`批量导入完成！成功导入 ${totalImported} 条记录`)
+    }
+  }, [importOrdersFromExcel, refreshBatches])
+
   const handleBatchNameConfirm = useCallback(
     async (name: string, date: string) => {
       try {
@@ -325,6 +358,7 @@ const App: React.FC = () => {
         shipmentNo={shipmentNo}
         onAdd={handleAdd}
         onImport={handleImport}
+        onBatchImport={handleBatchImport}
         onExport={handleExport}
         onResetFilters={handleResetFilters}
         onToggleColumnPanel={() => setShowColPanel(!showColPanel)}

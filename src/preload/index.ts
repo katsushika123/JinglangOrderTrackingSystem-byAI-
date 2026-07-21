@@ -18,6 +18,7 @@ export interface ElectronAPI {
   exportOrders: (batchId?: string | null, filePath?: string) => Promise<void>
   getStats: (batchId?: string | null) => Promise<StatsRow>
   openExcelDialog: () => Promise<string | null>
+  openExcelBatchDialog: () => Promise<string[]>
   saveExcelDialog: (defaultName: string) => Promise<string | null>
   parseExcel: (filePath: string) => Promise<Partial<OrderRow>[]>
   onDbReady: (callback: () => void) => void
@@ -90,6 +91,7 @@ const api: ElectronAPI = {
   exportOrders: (batchId, filePath) => ipcRenderer.invoke('db:exportOrders', batchId, filePath),
   getStats: (batchId) => ipcRenderer.invoke('db:getStats', batchId),
   openExcelDialog: () => ipcRenderer.invoke('dialog:openExcel'),
+  openExcelBatchDialog: () => ipcRenderer.invoke('dialog:openExcelBatch'),
   saveExcelDialog: (defaultName) => ipcRenderer.invoke('dialog:saveExcel', defaultName),
   parseExcel: (filePath) => ipcRenderer.invoke('excel:parse', filePath),
   onDbReady: (callback) => {

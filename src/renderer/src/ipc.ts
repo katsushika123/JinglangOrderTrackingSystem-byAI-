@@ -70,6 +70,10 @@ export async function openExcelDialog(): Promise<string | null> {
   return api.openExcelDialog()
 }
 
+export async function openExcelBatchDialog(): Promise<string[]> {
+  return api.openExcelBatchDialog()
+}
+
 export async function saveExcelDialog(defaultName: string): Promise<string | null> {
   return api.saveExcelDialog(defaultName)
 }

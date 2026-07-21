@@ -9,6 +9,7 @@ files:
 win:
   target:
     - nsis
+  signAndEditExecutable: false
 asar: true
 npmRebuild: false
 nsis:

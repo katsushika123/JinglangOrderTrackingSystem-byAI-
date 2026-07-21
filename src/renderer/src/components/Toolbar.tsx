@@ -10,6 +10,7 @@ interface ToolbarProps {
   dbReady: boolean
   onAdd: () => void
   onImport: () => void
+  onBatchImport: () => void
   onExport: () => void
   onResetFilters: () => void
   onToggleColumnPanel: () => void
@@ -28,6 +29,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   batches,
   onAdd,
   onImport,
+  onBatchImport,
   onExport,
   onResetFilters,
   onToggleColumnPanel,
@@ -52,6 +54,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
       </span>
       {!showDeleted && <button className="btn primary" onClick={onAdd} disabled={!dbReady}>+ 新增</button>}
       {!showDeleted && <button className="btn success" onClick={onImport} disabled={!dbReady}>&#x1F4E4; 导入清单</button>}
+      {!showDeleted && <button className="btn success" onClick={onBatchImport} disabled={!dbReady}>&#x1F4DA; 批量导入</button>}
       <button className="btn" onClick={onExport} disabled={!dbReady}>&#x1F4E5; 导出</button>
       <button className="btn" onClick={onResetFilters} disabled={!dbReady}>&#x1F504; 清除筛选</button>
       <button className="btn" onClick={onToggleColumnPanel}>&#x1F4CA; 列显示</button>

@@ -160,6 +160,17 @@ function registerIpcHandlers(): void {
     return result.filePaths[0]
   })
 
+  ipcMain.handle('dialog:openExcelBatch', async () => {
+    if (!mainWindow) return []
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: '批量导入 Excel 清单',
+      filters: [{ name: 'Excel 文件', extensions: ['xlsx', 'xls'] }],
+      properties: ['openFile', 'multiSelections']
+    })
+    if (result.canceled) return []
+    return result.filePaths
+  })
+
   ipcMain.handle('dialog:saveExcel', async (_event, defaultName: string) => {
     if (!mainWindow) return null
     const result = await dialog.showSaveDialog(mainWindow, {
