@@ -78,6 +78,7 @@ const App: React.FC = () => {
   const [filterResetCounter, setFilterResetCounter] = useState(0)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [notesOrder, setNotesOrder] = useState<OrderRow | null>(null)
+  const [tableKey, setTableKey] = useState(0)
 
   const shipmentIdRef = React.useRef<number | null>(null)
   useEffect(() => {
@@ -322,6 +323,7 @@ const App: React.FC = () => {
     }
     await refresh()
     await refreshBatches()
+    setTableKey(k => k + 1)
     setTimeout(() => alert(`一键出货完成！成功出货 ${done} 条`), 100)
   }, [refresh, refreshBatches])
 
@@ -436,6 +438,7 @@ const App: React.FC = () => {
       <StatsBar stats={stats} />
 
       <DataTable
+        key={tableKey}
         orders={orders}
         columns={ALL_COLUMNS}
         visibleColumns={visibleColumnKeys}
