@@ -19,6 +19,7 @@ interface ToolbarProps {
   onBatchPermanentDelete?: () => void
   onShipmentNoChange: (no: string) => void
   onToggleEditMode: () => void
+  onBatchShipment: () => void
   onToggleRecycleBin: () => void
   children?: React.ReactNode
 }
@@ -40,6 +41,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   onShipmentNoChange,
   editMode,
   onToggleEditMode,
+  onBatchShipment,
   showDeleted,
   onToggleRecycleBin,
   dbReady,
@@ -87,6 +89,11 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </option>
         ))}
       </select>
+      {!showDeleted && selectedCount > 0 && (
+        <button className="btn primary btn-sm" onClick={onBatchShipment}>
+          &#x1F69A; 批量出货 ({selectedCount})
+        </button>
+      )}
       {!showDeleted && selectedCount > 0 && (
         <button className="btn btn-warning btn-sm" onClick={onBatchDelete}>
           &#x1F5D1; 批量删除 ({selectedCount})

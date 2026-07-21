@@ -6,6 +6,7 @@ import ColumnPanel from './components/ColumnPanel'
 import OrderModal from './components/OrderModal'
 import ShipmentModal from './components/ShipmentModal'
 import BatchNameDialog from './components/BatchNameDialog'
+import BatchShipmentModal from './components/BatchShipmentModal'
 import NotesDialog from './components/NotesDialog'
 import { useOrders } from './hooks/useOrders'
 import { useBatches } from './hooks/useBatches'
@@ -78,6 +79,7 @@ const App: React.FC = () => {
   const [filterResetCounter, setFilterResetCounter] = useState(0)
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [notesOrder, setNotesOrder] = useState<OrderRow | null>(null)
+  const [showBatchShipment, setShowBatchShipment] = useState(false)
 
   const shipmentIdRef = React.useRef<number | null>(null)
   useEffect(() => {
@@ -295,6 +297,33 @@ const App: React.FC = () => {
     }
   }, [importOrdersFromExcel, refreshBatches, batches])
 
+  const selectedOrders = useMemo(
+    () => orders.filter(o => selectedIds.has(o.id)),
+    [orders, selectedIds]
+  )
+
+  const handleBatchShipment = useCallback(async (data: { 出货日期: string; 出货单号: string; 出货数量: number }) => {
+    let done = 0
+    let skipped = 0
+    for (const o of selectedOrders) {
+      const shipped = o.shipments.reduce((sum, s) => sum + s.出货数量, 0)
+      const labelQty = o.贴标 || 0
+      const shippable = Math.min(o.数量 - shipped, labelQty - shipped)
+      if (shippable <= 0) {
+        skipped++
+        continue
+      }
+      const qty = Math.min(data.出货数量, shippable)
+      await ipc.createShipment(o.id, { 出货日期: data.出货日期, 出货单号: data.出货单号, 出货数量: qty })
+      done++
+    }
+    setShowBatchShipment(false)
+    setSelectedIds(new Set())
+    await refresh()
+    const msg = `批量出货完成！成功出货 ${done} 条`
+    alert(skipped > 0 ? `${msg}，${skipped} 条已无剩余可出数量被跳过` : msg)
+  }, [selectedOrders, refresh])
+
   const getUniqueBatchName = (desired: string): string => {
     const existing = new Set(batches.filter(b => b.count > 0).map(b => b.name))
     if (!existing.has(desired)) return desired
@@ -388,6 +417,7 @@ const App: React.FC = () => {
         onShipmentNoChange={setShipmentNo}
         editMode={editMode}
         onToggleEditMode={handleToggleEditMode}
+        onBatchShipment={() => setShowBatchShipment(true)}
         showDeleted={showDeleted}
         onToggleRecycleBin={() => { setShowDeleted(!showDeleted); setEditMode(false) }}
         dbReady={dbReady}
@@ -454,6 +484,12 @@ const App: React.FC = () => {
           setShowBatchNameDialog(false)
           setPendingImportOrders([])
         }}
+      />
+      <BatchShipmentModal
+        visible={showBatchShipment}
+        orders={selectedOrders}
+        onConfirm={handleBatchShipment}
+        onClose={() => setShowBatchShipment(false)}
       />
       <NotesDialog
         visible={showNotesDialog}
