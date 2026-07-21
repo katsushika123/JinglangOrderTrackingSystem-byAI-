@@ -51,8 +51,8 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const handleAddOrUpdate = async () => {
     setErrorMsg('')
     const qty = getQty()
-    if (!form.出货日期 || !form.出货单号 || qty <= 0) {
-      showError('请完整填写出货信息')
+    if (!form.出货日期 || qty <= 0) {
+      showError('请填写出货日期和有效数量')
       return
     }
 
@@ -144,9 +144,11 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
             <div style={{ color: '#999', padding: 8, textAlign: 'center' }}>暂无出货记录</div>
           )}
           {order.shipments.map((ship) => (
-            <div key={ship.id} className="shipment-item">
+            <div key={ship.id} className="shipment-item" style={!ship.出货单号 ? { background: '#fff0f0', borderColor: '#f5c6cb' } : undefined}>
               <span>&#x1F4C5; {ship.出货日期}</span>
-              <span>#{ship.出货单号}</span>
+              <span style={!ship.出货单号 ? { color: '#d93025', fontWeight: 600 } : undefined}>
+                {ship.出货单号 ? `#${ship.出货单号}` : <span style={{ fontStyle: 'italic' }}>无单号</span>}
+              </span>
               <span style={{ fontWeight: 600, color: '#1a73e8' }}>{ship.出货数量}</span>
               <div style={{ display: 'flex', gap: 2 }}>
                 <button className="btn btn-sm" onClick={() => handleEdit(ship)}>&#x270F;&#xFE0F;</button>
