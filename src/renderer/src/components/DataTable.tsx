@@ -144,7 +144,7 @@ const DataTable: React.FC<DataTableProps> = ({
   const columnWidths: Record<string, string> = {
     '数量': '56px',
     '来料日期': '80px',
-    '送货地址': 'auto',
+    '送货地址': '78px',
   }
 
   const getColWidth = (key: string): string | undefined => {
