@@ -497,24 +497,6 @@ const App: React.FC = () => {
           setPendingImportOrders([])
         }}
       />
-      <ConfirmModal
-        visible={showBatchConfirm}
-        message={batchConfirmMsg}
-        onConfirm={async () => {
-          setShowBatchConfirm(false)
-          await batchActionRef.current()
-        }}
-        onCancel={() => setShowBatchConfirm(false)}
-      />
-      <ConfirmModal
-        visible={showBatchConfirm}
-        message={batchConfirmMsg}
-        onConfirm={async () => {
-          setShowBatchConfirm(false)
-          await batchActionRef.current()
-        }}
-        onCancel={() => setShowBatchConfirm(false)}
-      />
       <NotesDialog
         visible={showNotesDialog}
         order={notesOrder}
