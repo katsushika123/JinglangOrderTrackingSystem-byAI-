@@ -310,7 +310,10 @@ const App: React.FC = () => {
       alert('当前没有可出货的项目（需要先填写贴标数量）')
       return
     }
-    if (!confirm(`确定要为 ${labeled.length} 条已贴标项目一键出货吗？\n出货数量 = 贴标数量`)) return
+    const ok = await new Promise<boolean>(resolve => {
+      requestAnimationFrame(() => resolve(confirm(`确定要为 ${labeled.length} 条已贴标项目一键出货吗？\n出货数量 = 贴标数量`)))
+    })
+    if (!ok) return
     const today = new Date().toISOString().slice(0, 10)
     let done = 0
     for (const o of labeled) {
@@ -324,7 +327,9 @@ const App: React.FC = () => {
     await refresh()
     await refreshBatches()
     setTableKey(k => k + 1)
-    setTimeout(() => alert(`一键出货完成！成功出货 ${done} 条`), 100)
+    await new Promise(r => requestAnimationFrame(r))
+    await new Promise(r => requestAnimationFrame(r))
+    alert(`一键出货完成！成功出货 ${done} 条`)
   }, [refresh, refreshBatches])
 
   const getUniqueBatchName = (desired: string): string => {
