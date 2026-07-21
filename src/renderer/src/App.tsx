@@ -295,8 +295,12 @@ const App: React.FC = () => {
     }
   }, [importOrdersFromExcel, refreshBatches, batches])
 
+  const ordersRef = useRef(orders)
+  ordersRef.current = orders
+
   const handleAutoBatchShipment = useCallback(async () => {
-    const labeled = orders.filter(o => {
+    const currentOrders = ordersRef.current
+    const labeled = currentOrders.filter(o => {
       const shipped = o.shipments.reduce((sum, s) => sum + s.出货数量, 0)
       const labelQty = o.贴标 || 0
       return labelQty > 0 && shipped < labelQty
@@ -317,8 +321,9 @@ const App: React.FC = () => {
       done++
     }
     await refresh()
-    alert(`一键出货完成！成功出货 ${done} 条`)
-  }, [orders, refresh])
+    await refreshBatches()
+    setTimeout(() => alert(`一键出货完成！成功出货 ${done} 条`), 100)
+  }, [refresh, refreshBatches])
 
   const getUniqueBatchName = (desired: string): string => {
     const existing = new Set(batches.filter(b => b.count > 0).map(b => b.name))
