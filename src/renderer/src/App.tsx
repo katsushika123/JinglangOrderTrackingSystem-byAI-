@@ -212,28 +212,21 @@ const App: React.FC = () => {
 
   const extractDateFromName = (name: string): { cleanedName: string; dateStr: string } => {
     const today = new Date()
-    // 先尝试完整日期：YYYY-MM-DD / YYYY.MM.DD / YYYY_MM_DD / YYYYMMDD
     let m = name.match(/(\d{4})[.\-_]?(\d{1,2})[.\-_]?(\d{1,2})/)
     if (m) {
       const mo = Math.min(12, Math.max(1, parseInt(m[2]))).toString().padStart(2, '0')
       const d = Math.min(31, Math.max(1, parseInt(m[3]))).toString().padStart(2, '0')
-      const cleaned = name.replace(m[0], '').replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
-      return { cleanedName: cleaned || '未命名', dateStr: `${m[1]}-${mo}-${d}` }
+      return { cleanedName: name, dateStr: `${m[1]}-${mo}-${d}` }
     }
-    // 再尝试月-日格式：M-D / M.D / M_D
     m = name.match(/(\d{1,2})[.\-_](\d{1,2})/)
     if (m) {
-      const mon = parseInt(m[1])
-      const day = parseInt(m[2])
+      const mon = parseInt(m[1]), day = parseInt(m[2])
       if (mon >= 1 && mon <= 12 && day >= 1 && day <= 31) {
-        const mo = mon.toString().padStart(2, '0')
-        const d = day.toString().padStart(2, '0')
-        const cleaned = name.replace(m[0], '').replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
-        return { cleanedName: cleaned || '未命名', dateStr: `${today.getFullYear()}-${mo}-${d}` }
+        const mo = mon.toString().padStart(2, '0'), d = day.toString().padStart(2, '0')
+        return { cleanedName: name, dateStr: `${today.getFullYear()}-${mo}-${d}` }
       }
     }
-    const cleaned = name.replace(/[\s.\-_]+/g, ' ').replace(/\s*[（(]\d+[)）]\s*/g, ' ').trim()
-    return { cleanedName: cleaned || '未命名', dateStr: today.toISOString().slice(0, 10) }
+    return { cleanedName: name, dateStr: today.toISOString().slice(0, 10) }
   }
 
   const handleImport = useCallback(async () => {
