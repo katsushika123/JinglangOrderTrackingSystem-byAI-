@@ -104,6 +104,11 @@ const DataTable: React.FC<DataTableProps> = ({
     }
   }, [])
 
+  useEffect(() => {
+    setLabelEdits({})
+    setCellEdits({})
+  }, [orders])
+
   const handleResizeMove = useCallback((e: MouseEvent) => {
     if (!resizeRef.current) return
     const { key, startX, startW } = resizeRef.current
