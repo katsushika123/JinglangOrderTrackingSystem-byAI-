@@ -232,7 +232,7 @@ const App: React.FC = () => {
   const processImportData = (items: Partial<OrderRow>[]): Partial<OrderRow>[] => {
     return items.map(item => ({
       ...item,
-      物料长代码: (item.物料长代码 || '').replace(/\.01$/g, '.02'),
+      物料长代码: (item.物料长代码 || '').replace(/\.01/g, '.02'),
     }))
   }
 
