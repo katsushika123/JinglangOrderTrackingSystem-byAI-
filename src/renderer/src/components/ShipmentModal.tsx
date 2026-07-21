@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import type { OrderRow, ShipmentRow } from '../types'
 import * as ipc from '../ipc'
 
@@ -15,12 +15,14 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
   const [errorMsg, setErrorMsg] = useState('')
   const shipmentNoRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible && order) {
       setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
       setEditingId(null)
       setErrorMsg('')
-      setTimeout(() => shipmentNoRef.current?.focus(), 50)
+      requestAnimationFrame(() => {
+        setTimeout(() => shipmentNoRef.current?.focus(), 100)
+      })
     }
   }, [visible, order?.id])
 
@@ -41,7 +43,9 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
 
   const showError = (msg: string) => {
     setErrorMsg(msg)
-    setTimeout(() => shipmentNoRef.current?.focus(), 50)
+    requestAnimationFrame(() => {
+      setTimeout(() => shipmentNoRef.current?.focus(), 100)
+    })
   }
 
   const handleAddOrUpdate = async () => {
@@ -112,7 +116,7 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
             </div>
             <div className="form-group" style={{ flex: 2, minWidth: 100 }}>
               <label>出货单号</label>
-              <input ref={shipmentNoRef} value={form.出货单号} onChange={(e) => setForm({ ...form, 出货单号: e.target.value })} placeholder="单号" />
+              <input ref={shipmentNoRef} autoFocus value={form.出货单号} onChange={(e) => setForm({ ...form, 出货单号: e.target.value })} placeholder="单号" />
             </div>
             <div className="form-group" style={{ flex: 2, minWidth: 80 }}>
               <label>出货数量</label>
