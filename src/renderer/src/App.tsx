@@ -7,7 +7,6 @@ import OrderModal from './components/OrderModal'
 import ShipmentModal from './components/ShipmentModal'
 import BatchNameDialog from './components/BatchNameDialog'
 import NotesDialog from './components/NotesDialog'
-import ConfirmModal from './components/ConfirmModal'
 import { useOrders } from './hooks/useOrders'
 import { useBatches } from './hooks/useBatches'
 import { ALL_COLUMNS, DEFAULT_COL_VISIBILITY, COL_VIS_KEY } from './types'
@@ -80,9 +79,7 @@ const App: React.FC = () => {
   const [showNotesDialog, setShowNotesDialog] = useState(false)
   const [notesOrder, setNotesOrder] = useState<OrderRow | null>(null)
   const [tableKey, setTableKey] = useState(0)
-  const [showBatchConfirm, setShowBatchConfirm] = useState(false)
-  const [batchConfirmMsg, setBatchConfirmMsg] = useState('')
-  const batchActionRef = useRef<() => Promise<void>>(() => Promise.resolve())
+  const [batchStatus, setBatchStatus] = useState('')
 
   const shipmentIdRef = React.useRef<number | null>(null)
   useEffect(() => {
@@ -303,7 +300,7 @@ const App: React.FC = () => {
   const ordersRef = useRef(orders)
   ordersRef.current = orders
 
-  const handleAutoBatchShipment = useCallback(() => {
+  const handleAutoBatchShipment = useCallback(async () => {
     const currentOrders = ordersRef.current
     const labeled = currentOrders.filter(o => {
       const shipped = o.shipments.reduce((sum, s) => sum + s.出货数量, 0)
@@ -311,27 +308,25 @@ const App: React.FC = () => {
       return labelQty > 0 && shipped < labelQty
     })
     if (labeled.length === 0) {
-      alert('当前没有可出货的项目（需要先填写贴标数量）')
+      setBatchStatus('当前没有可出货的项目（需先填写贴标数量）')
       return
     }
-    setBatchConfirmMsg(`确定要为 ${labeled.length} 条已贴标项目一键出货吗？\n出货数量 = 贴标数量`)
-    batchActionRef.current = async () => {
-      const today = new Date().toISOString().slice(0, 10)
-      let done = 0
-      for (const o of labeled) {
-        const shipped = o.shipments.reduce((sum, s) => sum + s.出货数量, 0)
-        const labelQty = o.贴标 || 0
-        const shippable = Math.min(o.数量 - shipped, labelQty - shipped)
-        if (shippable <= 0) continue
-        await ipc.createShipment(o.id, { 出货日期: today, 出货单号: '', 出货数量: shippable })
-        done++
-      }
-      await refresh()
-      await refreshBatches()
-      setTableKey(k => k + 1)
-      alert(`一键出货完成！成功出货 ${done} 条`)
+    setBatchStatus(`正在出货...`)
+    const today = new Date().toISOString().slice(0, 10)
+    let done = 0
+    let skipped = 0
+    for (const o of labeled) {
+      const shipped = o.shipments.reduce((sum, s) => sum + s.出货数量, 0)
+      const labelQty = o.贴标 || 0
+      const shippable = Math.min(o.数量 - shipped, labelQty - shipped)
+      if (shippable <= 0) { skipped++; continue }
+      await ipc.createShipment(o.id, { 出货日期: today, 出货单号: '', 出货数量: shippable })
+      done++
     }
-    setShowBatchConfirm(true)
+    await refresh()
+    await refreshBatches()
+    setBatchStatus(skipped > 0 ? `已出货 ${done} 条，${skipped} 条已无剩余` : `已出货 ${done} 条`)
+    setTimeout(() => setBatchStatus(''), 3000)
   }, [refresh, refreshBatches])
 
   const getUniqueBatchName = (desired: string): string => {
@@ -443,6 +438,11 @@ const App: React.FC = () => {
       </Toolbar>
 
       <StatsBar stats={stats} />
+      {batchStatus && (
+        <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '6px 12px', fontSize: '0.8rem', textAlign: 'center', borderBottom: '1px solid #c8e6c9' }}>
+          {batchStatus}
+        </div>
+      )}
 
       <DataTable
         key={tableKey}
@@ -496,6 +496,15 @@ const App: React.FC = () => {
           setShowBatchNameDialog(false)
           setPendingImportOrders([])
         }}
+      />
+      <ConfirmModal
+        visible={showBatchConfirm}
+        message={batchConfirmMsg}
+        onConfirm={async () => {
+          setShowBatchConfirm(false)
+          await batchActionRef.current()
+        }}
+        onCancel={() => setShowBatchConfirm(false)}
       />
       <ConfirmModal
         visible={showBatchConfirm}
