@@ -439,11 +439,16 @@ const App: React.FC = () => {
 
       <StatsBar stats={stats} />
       {batchStatus && (
-        <div style={{ background: '#e8f5e9', color: '#2e7d32', padding: '6px 12px', fontSize: '0.8rem', textAlign: 'center', borderBottom: '1px solid #c8e6c9' }}>
+        <div style={{
+          position: 'fixed', top: 60, left: '50%', transform: 'translateX(-50%)',
+          background: '#323232', color: '#fff', padding: '8px 20px',
+          borderRadius: 6, fontSize: '0.8rem', zIndex: 100,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+          whiteSpace: 'nowrap', pointerEvents: 'none'
+        }}>
           {batchStatus}
         </div>
       )}
-
       <DataTable
         key={tableKey}
         orders={orders}
