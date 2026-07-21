@@ -3,20 +3,21 @@ import React, { useState, useEffect } from 'react'
 interface BatchNameDialogProps {
   visible: boolean
   defaultName: string
+  defaultDate: string
   onConfirm: (name: string, date: string) => void
   onCancel: () => void
 }
 
-const BatchNameDialog: React.FC<BatchNameDialogProps> = ({ visible, defaultName, onConfirm, onCancel }) => {
+const BatchNameDialog: React.FC<BatchNameDialogProps> = ({ visible, defaultName, defaultDate, onConfirm, onCancel }) => {
   const [name, setName] = useState('')
   const [date, setDate] = useState('')
 
   useEffect(() => {
     if (visible) {
       setName(defaultName)
-      setDate(new Date().toISOString().slice(0, 10))
+      setDate(defaultDate)
     }
-  }, [visible, defaultName])
+  }, [visible, defaultName, defaultDate])
 
   if (!visible) return null
 

@@ -72,6 +72,7 @@ const App: React.FC = () => {
   const [shipmentOrder, setShipmentOrder] = useState<OrderRow | null>(null)
   const [showBatchNameDialog, setShowBatchNameDialog] = useState(false)
   const [batchDefaultName, setBatchDefaultName] = useState('')
+  const [batchDefaultDate, setBatchDefaultDate] = useState('')
   const [pendingImportOrders, setPendingImportOrders] = useState<Partial<OrderRow>[]>([])
   const [editMode, setEditMode] = useState(false)
   const [filterResetCounter, setFilterResetCounter] = useState(0)
@@ -209,6 +210,28 @@ const App: React.FC = () => {
     setEditMode(false)
   }
 
+  const extractDateFromName = (name: string): { cleanedName: string; dateStr: string } => {
+    const patterns = [
+      /(\d{4})[.\-_]?(\d{1,2})[.\-_]?(\d{1,2})/,
+      /(\d{1,2})[.\-_](\d{1,2})/,
+    ]
+    const today = new Date()
+    for (const re of patterns) {
+      const m = re.exec(name)
+      if (!m) continue
+      if (m.length === 4) {
+        const y = m[1], mo = m[2].padStart(2, '0'), d = m[3].padStart(2, '0')
+        return { cleanedName: name.replace(m[0], '').replace(/[_\-.]+/g, ' ').trim(), dateStr: `${y}-${mo}-${d}` }
+      }
+      if (m.length === 3) {
+        const mo = m[1].padStart(2, '0'), d = m[2].padStart(2, '0')
+        const y = today.getFullYear()
+        return { cleanedName: name.replace(m[0], '').replace(/[_\-.]+/g, ' ').trim(), dateStr: `${y}-${mo}-${d}` }
+      }
+    }
+    return { cleanedName: name, dateStr: new Date().toISOString().slice(0, 10) }
+  }
+
   const handleImport = useCallback(async () => {
     const filePath = await ipc.openExcelDialog()
     if (!filePath) return
@@ -219,8 +242,10 @@ const App: React.FC = () => {
         alert('未解析到有效数据')
         return
       }
-      const fileName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
-      setBatchDefaultName(fileName)
+      const rawName = filePath.split(/[\\/]/).pop()?.replace(/\.[^/.]+$/, '') || '未命名'
+      const { cleanedName, dateStr } = extractDateFromName(rawName)
+      setBatchDefaultName(cleanedName)
+      setBatchDefaultDate(dateStr)
       setPendingImportOrders(parsed)
       setShowBatchNameDialog(true)
     } catch (err: unknown) {
@@ -372,6 +397,7 @@ const App: React.FC = () => {
       <BatchNameDialog
         visible={showBatchNameDialog}
         defaultName={batchDefaultName}
+        defaultDate={batchDefaultDate}
         onConfirm={handleBatchNameConfirm}
         onCancel={() => {
           setShowBatchNameDialog(false)
