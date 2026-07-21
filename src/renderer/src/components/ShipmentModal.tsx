@@ -17,7 +17,10 @@ const ShipmentModal: React.FC<ShipmentModalProps> = ({ visible, order, onClose, 
 
   useLayoutEffect(() => {
     if (visible && order) {
-      setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: '' })
+      const shipped = order.shipments.reduce((sum, s) => sum + s.出货数量, 0)
+      const labelQty = order.贴标 || 0
+      const shippable = Math.max(0, labelQty - shipped)
+      setForm({ 出货日期: new Date().toISOString().slice(0, 10), 出货单号: '', 出货数量: String(shippable || '') })
       setEditingId(null)
       setErrorMsg('')
       requestAnimationFrame(() => {

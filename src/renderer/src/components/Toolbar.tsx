@@ -8,6 +8,7 @@ interface ToolbarProps {
   editMode: boolean
   showDeleted: boolean
   dbReady: boolean
+  hasLabeledOrders: boolean
   onAdd: () => void
   onImport: () => void
   onBatchImport: () => void
@@ -45,6 +46,7 @@ const Toolbar: React.FC<ToolbarProps> = ({
   showDeleted,
   onToggleRecycleBin,
   dbReady,
+  hasLabeledOrders,
   children,
 }) => {
   return (
@@ -89,9 +91,9 @@ const Toolbar: React.FC<ToolbarProps> = ({
           </option>
         ))}
       </select>
-      {!showDeleted && selectedCount > 0 && (
+      {!showDeleted && hasLabeledOrders && (
         <button className="btn primary btn-sm" onClick={onBatchShipment}>
-          &#x1F69A; 批量出货 ({selectedCount})
+          &#x1F69A; 一键出货
         </button>
       )}
       {!showDeleted && selectedCount > 0 && (
