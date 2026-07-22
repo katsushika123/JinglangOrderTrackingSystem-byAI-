@@ -490,7 +490,7 @@ export function exportOrdersToExcel(batchId: string | null, filePath: string): v
 
   const headers = [
     '项目号', '钣金单据编码', '物料长代码', '物料名称', '数量',
-    '色号', '烤漆订单号', '重量/面积/体积', '送货地址', '是否外发', '来料日期',
+    '色号', '烤漆订单号', '重量/面积/体积', '送货地址', '生产厂商', '来料日期',
     '贴标数量', '已出货数量', '清单', '备注'
   ]
 

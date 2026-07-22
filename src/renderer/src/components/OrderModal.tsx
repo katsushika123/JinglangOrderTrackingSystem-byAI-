@@ -143,7 +143,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
             <input value={form.送货地址} onChange={(e) => setForm({ ...form, 送货地址: e.target.value })} />
           </div>
           <div className="form-group">
-            <label>是否外发</label>
+            <label>生产厂商</label>
             <input value={form.是否外发} onChange={(e) => setForm({ ...form, 是否外发: e.target.value })} />
           </div>
         </div>

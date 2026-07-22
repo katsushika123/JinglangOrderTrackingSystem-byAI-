@@ -58,7 +58,7 @@ export const ALL_COLUMNS: ColumnDef[] = [
   { key: '烤漆订单号', label: '烤漆订单号', filterable: true },
   { key: 'weightInfo', label: '重量/面积/体积', filterable: false },
   { key: '送货地址', label: '送货地址', filterable: true },
-  { key: '是否外发', label: '是否外发', filterable: true },
+  { key: '是否外发', label: '生产厂商', filterable: true },
   { key: '来料日期', label: '来料日期', filterable: true },
   { key: '贴标', label: '贴标进度', filterable: false },
 ]
