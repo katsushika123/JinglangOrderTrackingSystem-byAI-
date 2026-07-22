@@ -294,7 +294,7 @@ const DataTable: React.FC<DataTableProps> = ({
         </div>
       )
     }
-    if (editMode && EDITABLE_COLUMNS[col.key]) {
+    if ((editMode || col.key === '是否外发') && EDITABLE_COLUMNS[col.key]) {
       const editType = EDITABLE_COLUMNS[col.key]
       const editKey = getCellEditKey(item.id, col.key)
       const cellVal = cellEdits[editKey] ?? getCellValue(item, col.key)
