@@ -35,10 +35,10 @@ interface DataTableProps {
   onCellChange?: (id: number, field: string, value: string) => void
 }
 
-type OrderFieldKey = keyof Pick<OrderRow, '项目号' | '钣金单据编码' | '物料长代码' | '物料名称' | '色号' | '烤漆订单号' | '数量' | 'weight_value' | 'weight_unit' | '送货地址' | '来料日期' | '贴标' | '备注'>
+type OrderFieldKey = keyof Pick<OrderRow, '项目号' | '钣金单据编码' | '物料长代码' | '物料名称' | '色号' | '烤漆订单号' | '是否外发' | '数量' | 'weight_value' | 'weight_unit' | '送货地址' | '来料日期' | '贴标' | '备注'>
 
 function getOrderField(item: OrderRow, key: string): string {
-  const fieldKeys = new Set<string>(['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '烤漆订单号', '送货地址', '来料日期', '备注'])
+  const fieldKeys = new Set<string>(['项目号', '钣金单据编码', '物料长代码', '物料名称', '色号', '烤漆订单号', '是否外发', '送货地址', '来料日期', '备注'])
   if (fieldKeys.has(key)) return ((item as unknown) as Record<string, unknown>)[key] as string ?? ''
   if (key === '数量') return String(item.数量 || '')
   if (key === 'weight_value') return String(item.weight_value || '')
@@ -172,6 +172,7 @@ const DataTable: React.FC<DataTableProps> = ({
     '色号': 'text',
     '烤漆订单号': 'text',
     '送货地址': 'text',
+    '是否外发': 'text',
     '来料日期': 'date',
   }
 

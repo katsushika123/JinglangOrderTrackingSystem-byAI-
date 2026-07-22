@@ -20,6 +20,7 @@ const emptyForm = {
   weight_value: 0,
   weight_unit: 'kg' as string,
   送货地址: '',
+  是否外发: '',
   来料日期: '',
   贴标: 0,
 }
@@ -40,6 +41,7 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
         weight_value: order.weight_value,
         weight_unit: order.weight_unit,
         送货地址: order.送货地址,
+        是否外发: order.是否外发 || '',
         来料日期: order.来料日期,
         贴标: order.贴标 || 0,
       })
@@ -139,6 +141,10 @@ const OrderModal: React.FC<OrderModalProps> = ({ visible, order, currentBatch, o
           <div className="form-group">
             <label>送货地址</label>
             <input value={form.送货地址} onChange={(e) => setForm({ ...form, 送货地址: e.target.value })} />
+          </div>
+          <div className="form-group">
+            <label>是否外发</label>
+            <input value={form.是否外发} onChange={(e) => setForm({ ...form, 是否外发: e.target.value })} />
           </div>
         </div>
         <div className="form-group">

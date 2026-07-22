@@ -92,6 +92,7 @@ export async function initDatabase(): Promise<void> {
       weight_unit TEXT DEFAULT 'kg',
       烤漆订单号 TEXT DEFAULT '',
       送货地址 TEXT DEFAULT '',
+  是否外发 TEXT DEFAULT '',
       来料日期 TEXT DEFAULT '',
       贴标 INTEGER DEFAULT 0,
       备注 TEXT DEFAULT '',
@@ -115,6 +116,8 @@ export async function initDatabase(): Promise<void> {
   try { db.exec(`ALTER TABLE orders ADD COLUMN 备注 TEXT DEFAULT ''`) } catch { /* already exists */ }
   try { db.exec(`ALTER TABLE orders ADD COLUMN deleted INTEGER DEFAULT 0`) } catch { /* already exists */ }
   try { db.exec(`ALTER TABLE orders DROP COLUMN 打标`) } catch { /* already dropped or new schema */ }
+  try { db.exec(`ALTER TABLE orders ADD COLUMN 烤漆订单号 TEXT DEFAULT ''`) } catch { /* already exists */ }
+  try { db.exec(`ALTER TABLE orders ADD COLUMN 是否外发 TEXT DEFAULT ''`) } catch { /* already exists */ }
 }
 
 interface BatchRow {
@@ -138,6 +141,7 @@ interface OrderRow {
   weight_value: number
   weight_unit: string
   送货地址: string
+  是否外发: string
   来料日期: string
   贴标: number
   备注: string
@@ -251,6 +255,7 @@ export function getOrders(batchId: string | null, filters: Record<string, string
       weight_value: (row.weight_value as number) || 0,
        weight_unit: (row.weight_unit as string) || 'kg',
       送货地址: (row['送货地址'] as string) || '',
+      是否外发: (row['是否外发'] as string) || '',
       来料日期: (row['来料日期'] as string) || '',
       贴标: (row['贴标'] as number) || 0,
       备注: (row['备注'] as string) || '',
@@ -276,8 +281,8 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
   }
 
   dbRun(
-     `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, 烤漆订单号, weight_value, weight_unit, 送货地址, 来料日期, 贴标, 备注)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+     `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, 烤漆订单号, weight_value, weight_unit, 送货地址, 是否外发, 来料日期, 贴标, 备注)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       batchId,
       order.项目号 || '',
@@ -290,6 +295,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
       order.weight_value || 0,
       order.weight_unit || 'kg',
       order.送货地址 || '',
+      order.是否外发 || '',
       order.来料日期 || '',
       order.贴标 || 0,
       order.备注 || ''
@@ -313,6 +319,7 @@ export function createOrder(order: Partial<OrderRow> & { batch_name?: string }):
     weight_value: order.weight_value || 0,
      weight_unit: order.weight_unit || 'kg',
      送货地址: order.送货地址 || '',
+    是否外发: order.是否外发 || '',
     来料日期: order.来料日期 || '',
     贴标: order.贴标 || 0,
     备注: order.备注 || '',
@@ -337,6 +344,7 @@ export function updateOrder(id: number, data: Partial<OrderRow>): void {
     'weight_value': 'weight_value',
     'weight_unit': 'weight_unit',
     '送货地址': '送货地址',
+    '是否外发': '是否外发',
     '来料日期': '来料日期',
     '贴标': '贴标',
     '备注': '备注',
@@ -445,8 +453,8 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
     for (let i = orders.length - 1; i >= 0; i--) {
       const item = orders[i]
       db.run(
-        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, 烤漆订单号, weight_value, weight_unit, 送货地址, 来料日期, 贴标, 备注)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO orders (batch_id, 项目号, 钣金单据编码, 物料长代码, 物料名称, 数量, 色号, 烤漆订单号, weight_value, weight_unit, 送货地址, 是否外发, 来料日期, 贴标, 备注)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           batchId,
           item.项目号 || '',
@@ -459,6 +467,7 @@ export function importOrdersToBatch(orders: Partial<OrderRow>[], batchName: stri
           item.weight_value || 0,
           item.weight_unit || 'kg',
           item.送货地址 || '',
+          item.是否外发 || '',
           item.来料日期 || '',
           item.贴标 || 0,
           item.备注 || ''
