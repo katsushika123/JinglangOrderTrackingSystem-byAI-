@@ -249,13 +249,25 @@ const DataTable: React.FC<DataTableProps> = ({
         background: '#f5f5f5', color: '#555', display: 'inline-flex',
         alignItems: 'center', justifyContent: 'center', lineHeight: 1,
       }
+      const edgeBtnStyle: React.CSSProperties = {
+        ...stepBtnStyle, fontSize: '0.65rem', background: '#e8e8e8', width: 20,
+      }
       const handleStep = (delta: number) => {
         const newVal = Math.min(item.数量, Math.max(shippedTotal, labelQty + delta))
         if (newVal !== labelQty) onLabelQtyChange(item.id, newVal)
       }
+      const handleSetMin = () => {
+        if (labelQty !== shippedTotal) onLabelQtyChange(item.id, shippedTotal)
+      }
+      const handleSetMax = () => {
+        if (labelQty !== item.数量) onLabelQtyChange(item.id, item.数量)
+      }
       return (
-        <div style={{ minWidth: 100, padding: '2px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+        <div style={{ minWidth: 140, padding: '2px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
+            <button style={edgeBtnStyle} onClick={handleSetMin} disabled={labelQty <= shippedTotal} title="设为最小值">
+              &#x23EE;
+            </button>
             <button style={stepBtnStyle} onClick={() => handleStep(-1)} disabled={labelQty <= shippedTotal}>
               &minus;
             </button>
@@ -264,6 +276,9 @@ const DataTable: React.FC<DataTableProps> = ({
             </span>
             <button style={stepBtnStyle} onClick={() => handleStep(1)} disabled={labelQty >= item.数量}>
               +
+            </button>
+            <button style={edgeBtnStyle} onClick={handleSetMax} disabled={labelQty >= item.数量} title="设为最大值">
+              &#x23ED;
             </button>
           </div>
           <div className="progress-bar-wrap" style={{ marginTop: 2, marginBottom: 0 }}>
