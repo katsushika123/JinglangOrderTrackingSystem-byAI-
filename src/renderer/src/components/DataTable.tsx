@@ -243,29 +243,28 @@ const DataTable: React.FC<DataTableProps> = ({
           return next
         })
       }
+      const stepBtnStyle: React.CSSProperties = {
+        width: 22, height: 22, padding: 0, fontSize: '0.8rem', fontWeight: 700,
+        border: '1px solid #c8c8c8', borderRadius: 3, cursor: 'pointer',
+        background: '#f5f5f5', color: '#555', display: 'inline-flex',
+        alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+      }
+      const handleStep = (delta: number) => {
+        const newVal = Math.min(item.数量, Math.max(shippedTotal, labelQty + delta))
+        if (newVal !== labelQty) onLabelQtyChange(item.id, newVal)
+      }
       return (
-        <div style={{ minWidth: 90, padding: '2px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-            <input
-              type="number"
-              min={shippedTotal}
-              max={item.数量}
-              step="any"
-              value={editVal}
-              onChange={(e) => setLabelEdits(prev => ({ ...prev, [item.id]: e.target.value }))}
-              onBlur={handleBlur}
-              style={{
-                width: 50,
-                fontSize: '0.68rem',
-                padding: '1px 3px',
-                border: '1px solid #c8c8c8',
-                borderRadius: 2,
-                textAlign: 'center',
-              }}
-            />
-            <span style={{ fontSize: '0.6rem', color: '#888', whiteSpace: 'nowrap' }}>
-              / {item.数量}
+        <div style={{ minWidth: 100, padding: '2px 0' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+            <button style={stepBtnStyle} onClick={() => handleStep(-1)} disabled={labelQty <= shippedTotal}>
+              &minus;
+            </button>
+            <span style={{ fontSize: '0.7rem', fontWeight: 600, minWidth: 32, textAlign: 'center' }}>
+              {labelQty}<span style={{ fontSize: '0.6rem', color: '#888' }}>/{item.数量}</span>
             </span>
+            <button style={stepBtnStyle} onClick={() => handleStep(1)} disabled={labelQty >= item.数量}>
+              +
+            </button>
           </div>
           <div className="progress-bar-wrap" style={{ marginTop: 2, marginBottom: 0 }}>
             <div
